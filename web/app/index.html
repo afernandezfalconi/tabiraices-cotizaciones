@@ -559,18 +559,47 @@ function render(){
     else if(view==='preview')content=renderPreview();
   }else if(module==='mis'){
     content=renderMisQuotes();
+  }else if(module==='inventario'){
+    if(!window.renderInventoryModule)return;
+    renderInventoryModule();
+    return;
   }else if(module==='centro'){
-    content=renderCentro();
+    if(!window.renderCentroModule)return;
+    renderCentroModule();
+    return;
   }
   const nav=`<div class="tabs-nav">
     <button class="tab-btn ${module==='nueva'?'active':''}" onclick="showModule('nueva')">➕ Nueva Cotización</button>
     <button class="tab-btn ${module==='mis'?'active':''}" onclick="showModule('mis')">📋 Mis Cotizaciones</button>
+    <button class="tab-btn ${module==='inventario'?'active':''}" onclick="showModule('inventario')">📦 Inventario</button>
     <button class="tab-btn ${module==='centro'?'active':''}" onclick="showModule('centro')">🏢 Centro</button>
   </div>`;
   app.innerHTML=nav+content;
 }
 render();
-
 </script>
+
+<!-- Módulos de Inventario y Centro -->
+<script src="./js/inventory-module.js"></script>
+<script src="./js/centro-module.js"></script>
+<script>
+// Inicializar módulos cuando se cargan
+document.addEventListener('DOMContentLoaded', () => {
+  // Los módulos se inicializan cuando se muestran
+});
+
+// Exponer funciones globales para los módulos
+window.initInventoryModule = () => {
+  if(typeof module !== 'undefined' && module.render) return;
+  const inventoryModule = {};
+  inventoryModule.render = () => {
+    const app = document.getElementById('app');
+    if(!app) return;
+    const { initInventoryModule, renderInventoryModule, stopInventorySync } = window;
+    if(initInventoryModule) initInventoryModule();
+  };
+};
+</script>
+
 </body>
 </html>
