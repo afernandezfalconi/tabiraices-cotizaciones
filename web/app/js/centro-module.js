@@ -1,11 +1,11 @@
 let auditLogs = [];
 let allHolds = [];
 
-export function initCentroModule() {
+function initCentroModule() {
   loadCentroData();
 }
 
-export async function loadCentroData() {
+async function loadCentroData() {
   const userId = sessionStorage.getItem('tabiraices_user');
   const userRole = sessionStorage.getItem('tabiraices_user_role');
 
@@ -195,3 +195,8 @@ function renderHoldsTable() {
 }
 
 window.loadCentroData = loadCentroData;
+window.renderCentroModule = renderCentroModule;
+window.initCentroModule = initCentroModule;
+
+// Inicializar cuando se cargue el módulo
+initCentroModule();

@@ -576,6 +576,17 @@ function render(){
   </div>`;
   app.innerHTML=nav+content;
 }
+
+// Placeholder functions hasta que carguen los módulos
+window.renderInventoryModule = function() {
+  const app = document.getElementById('app');
+  app.innerHTML = '<div class="page" style="padding: 40px; text-align: center; color: var(--muted);">📦 Cargando Inventario...</div>';
+};
+window.renderCentroModule = function() {
+  const app = document.getElementById('app');
+  app.innerHTML = '<div class="page" style="padding: 40px; text-align: center; color: var(--muted);">🏢 Cargando Centro...</div>';
+};
+
 render();
 </script>
 

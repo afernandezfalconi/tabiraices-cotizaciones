@@ -1,7 +1,7 @@
 let inventoryCache = null;
 let inventorySyncInterval = null;
 
-export function initInventoryModule() {
+function initInventoryModule() {
   // Escuchar cambios de inventario
   window.addEventListener('inventory:updated', (e) => {
     inventoryCache = e.detail;
@@ -13,7 +13,7 @@ export function initInventoryModule() {
   startInventorySync();
 }
 
-export function renderInventoryModule() {
+function renderInventoryModule() {
   const app = document.getElementById('app');
   const userRole = sessionStorage.getItem('tabiraices_user_role') || 'vendedor';
 
@@ -218,3 +218,10 @@ window.openIngresoForm = openIngresoForm;
 window.closeIngresoForm = closeIngresoForm;
 window.handleIngresoSubmit = handleIngresoSubmit;
 window.syncInventory = syncInventory;
+window.renderInventoryModule = renderInventoryModule;
+window.initInventoryModule = initInventoryModule;
+window.startInventorySync = startInventorySync;
+window.stopInventorySync = stopInventorySync;
+
+// Inicializar cuando se cargue el módulo
+initInventoryModule();
