@@ -267,7 +267,34 @@ function addItem(){readForm();cq.items.push({desc:'',unit:'',qty:''});render();s
 function remItem(i){readForm();if(cq.items.length>1){cq.items.splice(i,1);render();setTimeout(()=>attachL(),0);}}
 function saveQ(){readForm();if(!cq.client.trim()){alert('Ingresa el nombre del cliente');return;}const idx=quotes.findIndex(q=>q.id===cq.id);if(idx>=0)quotes[idx]=cq;else quotes.unshift(cq);cq=null;view='list';render();}
 function genHash(){return Date.now().toString(36)+Math.random().toString(36).substr(2);}
-function shareQ(i){const q=quotes[i];const hash=genHash();localStorage.setItem(`coti_${hash}`,JSON.stringify(q));const url=`${window.location.origin}/landing.html?id=${hash}`;const msg=`Cotización #${q.id} - ${q.client}\n\n${url}`;if(navigator.share){navigator.share({title:'Cotización TABIRAÍCES',text:msg,url:url});}else{prompt('Copiar enlace (Ctrl+C o Cmd+C):',url);}}
+function shareQ(i){
+  const q=quotes[i];
+  const html=`<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000" onclick="if(event.target===this)this.remove()">
+    <div style="background:var(--surface);border-radius:12px;padding:30px;max-width:400px;width:90%;box-shadow:0 10px 40px rgba(0,0,0,0.2)">
+      <div style="font-size:18px;font-weight:900;color:var(--text);margin-bottom:20px;text-transform:uppercase">Compartir o Descargar</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <button class="btn bg" style="width:100%;padding:15px;justify-content:center;gap:10px" onclick="shareLink(${i});this.closest('[onclick]').parentElement.parentElement.remove()">
+          <span style="font-size:18px">🔗</span>
+          <span>Compartir Link</span>
+        </button>
+        <button class="btn bn" style="width:100%;padding:15px;justify-content:center;gap:10px;color:#fff" onclick="downloadPDF(${i});this.closest('[onclick]').parentElement.parentElement.remove()">
+          <span style="font-size:18px">📥</span>
+          <span>Descargar PDF</span>
+        </button>
+      </div>
+      <button style="width:100%;margin-top:15px;padding:10px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text);font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif" onclick="this.closest('[onclick]').parentElement.parentElement.remove()">Cancelar</button>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+function shareLink(i){
+  const q=quotes[i];
+  const hash=genHash();
+  localStorage.setItem(`coti_${hash}`,JSON.stringify(q));
+  const url=window.location.origin+'/landing.html?id='+hash;
+  const copied=navigator.clipboard?navigator.clipboard.writeText(url).then(()=>{alert('✅ Link copiado!\\n\\n'+url);if(confirm('¿Abrir en nueva pestaña?'))window.open(url)}):false;
+  if(!copied)alert('Link compartible:\\n'+url);
+}
 function footerHTML(){
   return`<div class="pft" style="border-radius:var(--r);margin-top:24px">
     <div>
@@ -358,8 +385,7 @@ function renderList(){
       </div>
       <div class="qca">
         <button class="btn bgh bsm" onclick="prevQ(${i})">Ver</button>
-        <button id="pdfbtn-${i}" class="btn bn bsm" onclick="downloadPDF(${i})">Descargar PDF</button>
-        <button class="btn bg bsm" onclick="shareQ(${i})">🔗 Compartir</button>
+        <button class="btn bg bsm" onclick="shareQ(${i})">🔗 Compartir/PDF</button>
         <button class="btn bg bsm" onclick="editQ(${i})">Editar</button>
         <div class="st-wrap" id="sw-${i}" onclick="event.stopPropagation()">
           <button class="st-btn ${sCls(q.status)}" onclick="toggleDrop(${i},event)">● ${sLbl(q.status)} ▾</button>
