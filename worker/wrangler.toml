@@ -1,0 +1,17 @@
+name = "tabiraices-inventory-api"
+main = "src/index.ts"
+type = "service"
+compatibility_date = "2024-08-15"
+
+[[kv_namespaces]]
+binding = "INVENTORY_KV"
+id = "REEMPLAZAR_CON_KV_ID"
+preview_id = "REEMPLAZAR_CON_KV_PREVIEW_ID"
+
+[build]
+command = "npm run build"
+cwd = "."
+
+[build.upload]
+format = "modules"
+main = "./dist/index.js"
