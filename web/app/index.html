@@ -191,7 +191,7 @@ hr.dv{border:none;border-top:1.5px solid var(--div);margin:16px 0}
 .quote-footer{display:flex;flex-direction:column;gap:10px}
 /* CENTRO */
 .centro-cont{padding:0}
-.centro-header{margin-bottom:20px}
+.centro-header{margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap}
 .centro-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:24px}
 .centro-stat{background:var(--surface);border-radius:var(--r);padding:16px;border-left:4px solid var(--gold);display:flex;gap:12px;align-items:flex-start;transition:all .2s}
 .centro-stat:hover{box-shadow:0 4px 12px rgba(0,0,0,.1)}
@@ -232,6 +232,9 @@ let quotes=[
 ];
 let cq=null,view='list',dark=false,activeFilter='all';
 const LOGO_SRC=document.getElementById('logo-img')?.src||'';
+function loadQuotes(){try{const saved=localStorage.getItem('tabiraices_quotes');return saved?JSON.parse(saved):quotes;}catch(e){return quotes;}}
+function saveQuotes(){try{localStorage.setItem('tabiraices_quotes',JSON.stringify(quotes));}catch(e){}}
+quotes=loadQuotes();
 function toggleTheme(){dark=!dark;document.body.classList.toggle('dark',dark);document.getElementById('theme-btn').textContent=dark?'☀️':'🌙';}
 const fmt=n=>new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',minimumFractionDigits:0,maximumFractionDigits:0}).format(n);
 const fmtN=n=>'$'+parseFloat(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
@@ -327,13 +330,13 @@ function setFilter(f){activeFilter=f;render();}
 function newQuote(){const ids=quotes.map(q=>parseInt(q.id)||0);const next=String((ids.length?Math.max(...ids):20)+1).padStart(4,'0');cq={id:next,client:'',project:'',location:'',payment:'',date:new Date().toISOString().split('T')[0],status:'pending',ivaRate:0,items:[{desc:'',unit:'',qty:''}]};view='form';render();}
 function editQ(i){cq=JSON.parse(JSON.stringify(quotes[i]));cq.ivaRate=cq.ivaRate||0;view='form';render();}
 function prevQ(i){cq=JSON.parse(JSON.stringify(quotes[i]));view='preview';render();}
-function delQ(i){if(confirm('¿Eliminar cotización #'+quotes[i].id+'?')){quotes.splice(i,1);render();}}
+function delQ(i){if(confirm('¿Eliminar cotización #'+quotes[i].id+'?')){quotes.splice(i,1);saveQuotes();render();}}
 function readForm(){if(!cq)return;const g=id=>document.getElementById(id);['client','project','location','payment','date'].forEach(k=>{if(g('q-'+k))cq[k]=g('q-'+k).value;});if(g('q-iva'))cq.ivaRate=parseFloat(g('q-iva').value)||0;cq.items.forEach((item,i)=>['desc','unit','qty'].forEach(k=>{const el=g('item-'+k+'-'+i);if(el)item[k]=el.value;}));}
 function attachL(){['client','project','location','payment','date'].forEach(k=>{const el=document.getElementById('q-'+k);if(el)el.addEventListener('input',()=>{readForm();updTot();});});const iva=document.getElementById('q-iva');if(iva)iva.addEventListener('change',()=>{readForm();updTot();});cq&&cq.items.forEach((_,i)=>['desc','unit','qty'].forEach(k=>{const el=document.getElementById('item-'+k+'-'+i);if(el)el.addEventListener('input',()=>{readForm();updTot();});}));}
 function updTot(){const st=sub(cq.items),iv=st*(cq.ivaRate||0)/100,tot=st+iv;const s=id=>document.getElementById(id);if(s('t-sub'))s('t-sub').textContent=fmt(st);if(s('t-iva'))s('t-iva').textContent=fmt(iv);if(s('t-tot'))s('t-tot').textContent=fmt(tot);cq.items.forEach((_,i)=>{const u=parseFloat(document.getElementById('item-unit-'+i)?.value)||0,q=parseFloat(document.getElementById('item-qty-'+i)?.value)||0,el=document.getElementById('it-'+i);if(el)el.textContent=fmt(u*q);});}
 function addItem(){readForm();cq.items.push({desc:'',unit:'',qty:''});render();setTimeout(()=>attachL(),0);}
 function remItem(i){readForm();if(cq.items.length>1){cq.items.splice(i,1);render();setTimeout(()=>attachL(),0);}}
-function saveQ(){readForm();if(!cq.client.trim()){alert('Ingresa el nombre del cliente');return;}const idx=quotes.findIndex(q=>q.id===cq.id);if(idx>=0)quotes[idx]=cq;else quotes.unshift(cq);cq=null;view='list';render();}
+function saveQ(){readForm();if(!cq.client.trim()){alert('Ingresa el nombre del cliente');return;}const idx=quotes.findIndex(q=>q.id===cq.id);if(idx>=0)quotes[idx]=cq;else quotes.unshift(cq);saveQuotes();cq=null;view='list';render();}
 function genHash(){return Date.now().toString(36)+Math.random().toString(36).substr(2);}
 function shareQ(i){
   const q=quotes[i];
@@ -482,6 +485,7 @@ function renderPreview(){
 function changeStatus(i,s,e){
   if(e)e.stopPropagation();
   quotes[i].status=s;
+  saveQuotes();
   render();
 }
 function toggleDrop(i,e){
@@ -492,7 +496,9 @@ function toggleDrop(i,e){
 }
 document.addEventListener('click',()=>document.querySelectorAll('.st-drop').forEach(d=>d.style.display='none'));
 function renderMisQuotes(){
-  const filtered=Object.entries(localStorage).filter(([k])=>k.startsWith('coti_')).map(([,v])=>JSON.parse(v)).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  let filtered=[];
+  try{filtered=Object.entries(localStorage).filter(([k])=>k.startsWith('coti_')).map(([,v])=>JSON.parse(v)).sort((a,b)=>new Date(b.date)-new Date(a.date));}catch(e){}
+  filtered=[...filtered,...quotes];
   if(!filtered.length)return`<div class="empty-state"><div style="font-size:60px">📋</div><p style="margin-top:10px;color:var(--muted);font-size:14px">No hay cotizaciones yet</p></div>`;
   const stats={total:filtered.length,paid:filtered.filter(q=>q.status==='paid').length,sent:filtered.filter(q=>q.status==='sent').length,pending:filtered.filter(q=>!q.status||q.status==='pending').length};
   const filtered2=activeFilter==='all'?filtered:filtered.filter(q=>{if(activeFilter==='paid')return q.status==='paid';if(activeFilter==='sent')return q.status==='sent';return!q.status||q.status==='pending'});
@@ -500,12 +506,33 @@ function renderMisQuotes(){
 ${q.status==='paid'?'💳 PAGADA':q.status==='sent'?'📤 ENVIADA':'⏳ PENDIENTE'}</div></div><div class="quote-details"><div><span class="quote-label">Cliente</span><div style="font-weight:700;font-size:14px">${q.client}</div></div><div style="margin-top:10px"><span class="quote-label">Proyecto</span><div style="font-weight:700;font-size:14px">${q.project}</div></div></div><div class="quote-total">TOTAL: <strong>${fmt(q.items.reduce((s,it)=>s+(parseFloat(it.unit)||0)*(parseFloat(it.qty)||0),0)*(1+(parseFloat(q.ivaRate)||0)/100))}</strong></div><div class="quote-footer"><div style="display:flex;gap:8px"><button class="btn bg" style="flex:1;padding:8px 12px;font-size:12px" onclick="showView('preview');view='preview';quotes[${idx}]=quotes[${idx}];render()">👁 Ver</button><button class="btn bn" style="flex:1;padding:8px 12px;font-size:12px;color:#fff" onclick="shareQ(${idx})">🔗 Compartir</button></div><div style="font-size:11px;color:var(--muted);margin-top:8px">Comprobante: ${paid}</div></div></div>`}).join('')}</div></div>`;
 }
 function renderCentro(){
-  const all=Object.entries(localStorage).filter(([k])=>k.startsWith('coti_')).map(([,v])=>JSON.parse(v)).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  let all=[];
+  try{all=Object.entries(localStorage).filter(([k])=>k.startsWith('coti_')).map(([,v])=>JSON.parse(v)).sort((a,b)=>new Date(b.date)-new Date(a.date));}catch(e){}
+  all=[...all,...quotes];
   const paid=all.filter(q=>q.status==='paid');const sent=all.filter(q=>q.status==='sent');const pending=all.filter(q=>!q.status||q.status==='pending');
   const totalAmount=all.reduce((s,q)=>s+q.items.reduce((ss,it)=>ss+(parseFloat(it.unit)||0)*(parseFloat(it.qty)||0),0)*(1+(parseFloat(q.ivaRate)||0)/100),0);
   const paidAmount=paid.reduce((s,q)=>s+q.items.reduce((ss,it)=>ss+(parseFloat(it.unit)||0)*(parseFloat(it.qty)||0),0)*(1+(parseFloat(q.ivaRate)||0)/100),0);
   const missingReceipts=all.filter(q=>!q.comprobante).length;
-  return`<div class="centro-cont"><div class="centro-header"><h2 style="font-size:24px;font-weight:900;color:var(--navy)">Centro de Cotizaciones</h2><p style="color:var(--muted);font-size:13px;margin-top:5px">Dashboard de cotizaciones y pagos</p></div><div class="centro-stats"><div class="centro-stat"><div class="stat-icon">💰</div><div><div class="stat-label">Total Facturado</div><div class="stat-value">${fmt(totalAmount)}</div></div></div><div class="centro-stat"><div class="stat-icon">✅</div><div><div class="stat-label">Pagado</div><div class="stat-value">${fmt(paidAmount)}</div></div></div><div class="centro-stat"><div class="stat-icon">⏳</div><div><div class="stat-label">Pendiente</div><div class="stat-value">${fmt(totalAmount-paidAmount)}</div></div></div><div class="centro-stat"><div class="stat-icon">📁</div><div><div class="stat-label">Falta Comprobante</div><div class="stat-value" style="color:#ef4444">${missingReceipts}</div></div></div></div><div class="centro-table"><table style="width:100%;border-collapse:collapse"><thead><tr style="background:var(--navy);color:#fff"><th style="padding:12px;text-align:left;font-size:12px;font-weight:800;text-transform:uppercase">ID</th><th style="padding:12px;text-align:left;font-size:12px;font-weight:800;text-transform:uppercase">Cliente</th><th style="padding:12px;text-align:left;font-size:12px;font-weight:800;text-transform:uppercase">Fecha</th><th style="padding:12px;text-align:right;font-size:12px;font-weight:800;text-transform:uppercase">Total</th><th style="padding:12px;text-align:center;font-size:12px;font-weight:800;text-transform:uppercase">Estado</th><th style="padding:12px;text-align:center;font-size:12px;font-weight:800;text-transform:uppercase">Comprobante</th></tr></thead><tbody>${all.map((q,idx)=>{const total=q.items.reduce((s,it)=>s+(parseFloat(it.unit)||0)*(parseFloat(it.qty)||0),0)*(1+(parseFloat(q.ivaRate)||0)/100);const statusColor=q.status==='paid'?'#10b981':q.status==='sent'?'#3b82f6':'#f59e0b';return`<tr style="border-bottom:1px solid var(--border);hover-bgcolor:#f9f9f9"><td style="padding:12px;font-weight:700">#${q.id}</td><td style="padding:12px">${q.client}</td><td style="padding:12px;font-size:12px;color:var(--muted)">${q.date}</td><td style="padding:12px;text-align:right;font-weight:800">${fmt(total)}</td><td style="padding:12px;text-align:center"><span style="background:${statusColor}20;color:${statusColor};padding:6px 12px;border-radius:6px;font-size:11px;font-weight:700;display:inline-block">${q.status==='paid'?'✅ PAGADA':q.status==='sent'?'📤 ENVIADA':'⏳ PENDIENTE'}</span></td><td style="padding:12px;text-align:center">${q.comprobante?'✅':'<span style="color:var(--muted)">—</span>'}</td></tr>`}).join('')}</tbody></table></div></div>`;
+  return`<div class="centro-cont"><div class="centro-header"><div><h2 style="font-size:24px;font-weight:900;color:var(--navy)">Centro de Cotizaciones</h2><p style="color:var(--muted);font-size:13px;margin-top:5px">Dashboard de cotizaciones y pagos</p></div><div style="display:flex;gap:10px"><button class="btn bg" onclick="exportCSV()">📊 Exportar CSV</button><button class="btn bn" onclick="exportPDF()" style="color:#fff">📄 Exportar PDF</button></div></div><div class="centro-stats"><div class="centro-stat"><div class="stat-icon">💰</div><div><div class="stat-label">Total Facturado</div><div class="stat-value">${fmt(totalAmount)}</div></div></div><div class="centro-stat"><div class="stat-icon">✅</div><div><div class="stat-label">Pagado</div><div class="stat-value">${fmt(paidAmount)}</div></div></div><div class="centro-stat"><div class="stat-icon">⏳</div><div><div class="stat-label">Pendiente</div><div class="stat-value">${fmt(totalAmount-paidAmount)}</div></div></div><div class="centro-stat"><div class="stat-icon">📁</div><div><div class="stat-label">Falta Comprobante</div><div class="stat-value" style="color:#ef4444">${missingReceipts}</div></div></div></div><div class="centro-table"><table style="width:100%;border-collapse:collapse"><thead><tr style="background:var(--navy);color:#fff"><th style="padding:12px;text-align:left;font-size:12px;font-weight:800;text-transform:uppercase">ID</th><th style="padding:12px;text-align:left;font-size:12px;font-weight:800;text-transform:uppercase">Cliente</th><th style="padding:12px;text-align:left;font-size:12px;font-weight:800;text-transform:uppercase">Fecha</th><th style="padding:12px;text-align:right;font-size:12px;font-weight:800;text-transform:uppercase">Total</th><th style="padding:12px;text-align:center;font-size:12px;font-weight:800;text-transform:uppercase">Estado</th><th style="padding:12px;text-align:center;font-size:12px;font-weight:800;text-transform:uppercase">Comprobante</th></tr></thead><tbody>${all.map((q,idx)=>{const total=q.items.reduce((s,it)=>s+(parseFloat(it.unit)||0)*(parseFloat(it.qty)||0),0)*(1+(parseFloat(q.ivaRate)||0)/100);const statusColor=q.status==='paid'?'#10b981':q.status==='sent'?'#3b82f6':'#f59e0b';return`<tr style="border-bottom:1px solid var(--border);hover-bgcolor:#f9f9f9"><td style="padding:12px;font-weight:700">#${q.id}</td><td style="padding:12px">${q.client}</td><td style="padding:12px;font-size:12px;color:var(--muted)">${q.date}</td><td style="padding:12px;text-align:right;font-weight:800">${fmt(total)}</td><td style="padding:12px;text-align:center"><span style="background:${statusColor}20;color:${statusColor};padding:6px 12px;border-radius:6px;font-size:11px;font-weight:700;display:inline-block">${q.status==='paid'?'✅ PAGADA':q.status==='sent'?'📤 ENVIADA':'⏳ PENDIENTE'}</span></td><td style="padding:12px;text-align:center">${q.comprobante?'✅':'<span style="color:var(--muted)">—</span>'}</td></tr>`}).join('')}</tbody></table></div></div>`;
+}
+function exportCSV(){
+  let all=[];
+  try{all=Object.entries(localStorage).filter(([k])=>k.startsWith('coti_')).map(([,v])=>JSON.parse(v)).sort((a,b)=>new Date(b.date)-new Date(a.date));}catch(e){}
+  all=[...all,...quotes];
+  const headers=['ID','Cliente','Proyecto','Fecha','Estado','Total','Comprobante'];
+  const rows=all.map(q=>{const total=q.items.reduce((s,it)=>s+(parseFloat(it.unit)||0)*(parseFloat(it.qty)||0),0)*(1+(parseFloat(q.ivaRate)||0)/100);return[q.id,q.client,q.project,q.date,q.status||'pending',total,q.comprobante?'Sí':'No'];});
+  const csv=[headers,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});const link=document.createElement('a');const url=URL.createObjectURL(blob);link.setAttribute('href',url);link.setAttribute('download',`cotizaciones_${new Date().toISOString().split('T')[0]}.csv`);link.click();
+}
+function exportPDF(){
+  let all=[];
+  try{all=Object.entries(localStorage).filter(([k])=>k.startsWith('coti_')).map(([,v])=>JSON.parse(v)).sort((a,b)=>new Date(b.date)-new Date(a.date));}catch(e){}
+  all=[...all,...quotes];
+  const paid=all.filter(q=>q.status==='paid');const sent=all.filter(q=>q.status==='sent');const pending=all.filter(q=>!q.status||q.status==='pending');
+  const totalAmount=all.reduce((s,q)=>s+q.items.reduce((ss,it)=>ss+(parseFloat(it.unit)||0)*(parseFloat(it.qty)||0),0)*(1+(parseFloat(q.ivaRate)||0)/100),0);
+  const paidAmount=paid.reduce((s,q)=>s+q.items.reduce((ss,it)=>ss+(parseFloat(it.unit)||0)*(parseFloat(it.qty)||0),0)*(1+(parseFloat(q.ivaRate)||0)/100),0);
+  const html=`<html><head><meta charset="UTF-8"><title>Reporte Cotizaciones</title><style>body{font-family:Arial;margin:20px;color:#333;}h1{color:#0D1B2A;}table{width:100%;border-collapse:collapse;margin-top:20px;}th,td{border:1px solid #ddd;padding:10px;text-align:left;}th{background:#0D1B2A;color:white;font-weight:bold;}tr:nth-child(even){background:#f9f9f9;}.stat{display:inline-block;margin-right:30px;margin-top:20px;}.stat-label{font-size:12px;color:#666;font-weight:bold;}.stat-value{font-size:20px;color:#0D1B2A;font-weight:bold;}</style></head><body><h1>Reporte de Cotizaciones - TABIRÁ ICES</h1><p>Generado: ${new Date().toLocaleString('es-MX')}</p><div class="stat"><div class="stat-label">TOTAL FACTURADO</div><div class="stat-value">${fmt(totalAmount)}</div></div><div class="stat"><div class="stat-label">TOTAL PAGADO</div><div class="stat-value">${fmt(paidAmount)}</div></div><div class="stat"><div class="stat-label">TOTAL PENDIENTE</div><div class="stat-value">${fmt(totalAmount-paidAmount)}</div></div><table><thead><tr><th>ID</th><th>Cliente</th><th>Proyecto</th><th>Fecha</th><th>Estado</th><th>Total</th></tr></thead><tbody>${all.map(q=>{const total=q.items.reduce((s,it)=>s+(parseFloat(it.unit)||0)*(parseFloat(it.qty)||0),0)*(1+(parseFloat(q.ivaRate)||0)/100);return`<tr><td>#${q.id}</td><td>${q.client}</td><td>${q.project}</td><td>${q.date}</td><td>${q.status==='paid'?'✅ PAGADA':q.status==='sent'?'📤 ENVIADA':'⏳ PENDIENTE'}</td><td>${fmt(total)}</td></tr>`;}).join('')}</tbody></table></body></html>`;
+  const win=window.open();win.document.write(html);win.document.close();setTimeout(()=>win.print(),1500);
 }
 function render(){
   const app=document.getElementById('app');
