@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Cotización | TABIRAÍCES</title>
+<link rel="icon" href="assets/img/logo-main.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--navy:#0D1B2A;--gold:#F5C010;--text:#1a1a1a;--muted:#666;--bg:#f4f3ef;--border:#d0cfc9}
+body{font-family:Montserrat,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.header{background:var(--navy);color:#fff;padding:20px;text-align:center}
+.header-logo{height:50px;margin-bottom:10px}
+.header h1{font-size:24px;font-weight:900;letter-spacing:1px;margin-bottom:4px;text-transform:uppercase}
+.header p{font-size:12px;color:var(--gold);font-weight:700;letter-spacing:0.5px;text-transform:uppercase}
+.container{max-width:900px;margin:0 auto;padding:30px 20px}
+.coti-box{background:#fff;border:1px solid var(--border);border-radius:10px;padding:30px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,0.05)}
+.coti-header{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:30px;padding-bottom:20px;border-bottom:2px solid var(--navy)}
+.coti-title{font-size:20px;font-weight:900;color:var(--navy);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.coti-label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:4px}
+.coti-value{font-size:16px;font-weight:800;color:var(--text)}
+.coti-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;margin-bottom:30px}
+.meta-item{padding:15px;background:#f9f9f9;border-radius:8px;border-left:3px solid var(--gold)}
+.meta-label{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:6px}
+.meta-value{font-size:15px;font-weight:800;color:var(--text)}
+table{width:100%;border-collapse:collapse;margin:20px 0}
+th{background:var(--navy);color:#fff;padding:12px;text-align:left;font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:0.5px}
+td{padding:12px;border-bottom:1px solid var(--border)}
+tr:hover{background:#f9f9f9}
+.amount{text-align:right;font-weight:800}
+.totals{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin:20px 0;padding:20px;background:#f9f9f9;border-radius:8px}
+.total-item{text-align:right}
+.total-label{font-size:12px;color:var(--muted);font-weight:700;margin-bottom:4px;text-transform:uppercase}
+.total-value{font-size:22px;font-weight:900;color:var(--navy)}
+.total-value.gold{color:var(--gold)}
+.actions{display:flex;gap:10px;justify-content:center;margin-top:30px;flex-wrap:wrap}
+.btn{padding:12px 24px;border:none;border-radius:8px;font-family:Montserrat,sans-serif;font-weight:800;font-size:13px;cursor:pointer;text-transform:uppercase;letter-spacing:0.5px;transition:all 0.2s}
+.btn-primary{background:var(--gold);color:var(--navy)}.btn-primary:hover{background:#E0A800}
+.btn-secondary{background:var(--navy);color:#fff;border:2px solid var(--navy)}.btn-secondary:hover{background:#0a1420}
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-icon{font-size:60px;margin-bottom:20px;opacity:0.5}
+.footer{text-align:center;padding:20px;font-size:12px;color:var(--muted);margin-top:40px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <img src="assets/img/logo-main.svg" alt="TABIRAÍCES" class="header-logo" style="height:50px;"/>
+  <h1>TABIRAÍCES</h1>
+  <p>La base de toda buena obra</p>
+</div>
+
+<div class="container">
+  <div id="content"></div>
+</div>
+
+<div class="footer">
+  <p>© 2026 TABIRAÍCES | Ventanilla, Colotepec, Puerto Escondido, Oaxaca</p>
+  <p><a href="../" style="color:var(--gold);text-decoration:none;font-weight:700">← Volver</a></p>
+</div>
+
+<script>
+const fmt = (n) => new Intl.NumberFormat('es-MX', {style:'currency',currency:'MXN'}).format(n);
+
+function loadLanding() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+
+  if (!id) {
+    document.getElementById('content').innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>Cotización no encontrada</p></div>';
+    return;
+  }
+
+  const coti = JSON.parse(localStorage.getItem(`coti_${id}`));
+
+  if (!coti) {
+    document.getElementById('content').innerHTML = '<div class="empty"><div class="empty-icon">❌</div><p>Esta cotización no existe</p></div>';
+    return;
+  }
+
+  const items = coti.items.filter(it => it.desc || it.qty);
+  const subtotal = items.reduce((sum, it) => sum + ((parseFloat(it.unit) || 0) * (parseFloat(it.qty) || 0)), 0);
+  const iva = subtotal * ((parseFloat(coti.ivaRate) || 0) / 100);
+  const total = subtotal + iva;
+
+  const html = `
+    <div class="coti-box">
+      <div class="coti-header">
+        <div>
+          <div class="coti-label">Cotización Nro.</div>
+          <div class="coti-value">#${coti.id}</div>
+        </div>
+        <div>
+          <div class="coti-label">Fecha</div>
+          <div class="coti-value">${coti.date || 'N/A'}</div>
+        </div>
+      </div>
+
+      <div class="coti-meta">
+        <div class="meta-item">
+          <div class="meta-label">Cliente</div>
+          <div class="meta-value">${coti.client || '—'}</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Proyecto/Obra</div>
+          <div class="meta-value">${coti.project || '—'}</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Entrega</div>
+          <div class="meta-value">${coti.location || '—'}</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Forma de Pago</div>
+          <div class="meta-value">${coti.payment || '—'}</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:30px">
+        <h3 style="font-size:16px;font-weight:900;margin-bottom:15px;text-transform:uppercase;color:var(--navy)">Detalles de la Cotización</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Descripción</th>
+              <th style="text-align:right;">Precio Unitario</th>
+              <th style="text-align:right;">Cantidad</th>
+              <th style="text-align:right;">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${items.map(it => {
+              const itemTotal = (parseFloat(it.unit) || 0) * (parseFloat(it.qty) || 0);
+              return `<tr>
+                <td>${it.desc || '—'}</td>
+                <td class="amount">${fmt(parseFloat(it.unit) || 0)}</td>
+                <td class="amount">${parseInt(it.qty) || 0}</td>
+                <td class="amount" style="font-weight:800">${fmt(itemTotal)}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="totals">
+        <div class="total-item">
+          <div class="total-label">Subtotal</div>
+          <div class="total-value">${fmt(subtotal)}</div>
+        </div>
+        <div class="total-item">
+          <div class="total-label">IVA (${coti.ivaRate || 0}%)</div>
+          <div class="total-value">${fmt(iva)}</div>
+        </div>
+        <div class="total-item">
+          <div class="total-label">TOTAL</div>
+          <div class="total-value gold">${fmt(total)}</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" onclick="window.print()">🖨 Imprimir/PDF</button>
+        <button class="btn btn-secondary" onclick="window.location.href='../'">← Volver</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('content').innerHTML = html;
+  document.title = `Cotización #${coti.id} | TABIRAÍCES`;
+}
+
+loadLanding();
+</script>
+
+</body>
+</html>

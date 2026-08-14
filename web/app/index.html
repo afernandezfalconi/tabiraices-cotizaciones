@@ -266,6 +266,8 @@ function updTot(){const st=sub(cq.items),iv=st*(cq.ivaRate||0)/100,tot=st+iv;con
 function addItem(){readForm();cq.items.push({desc:'',unit:'',qty:''});render();setTimeout(()=>attachL(),0);}
 function remItem(i){readForm();if(cq.items.length>1){cq.items.splice(i,1);render();setTimeout(()=>attachL(),0);}}
 function saveQ(){readForm();if(!cq.client.trim()){alert('Ingresa el nombre del cliente');return;}const idx=quotes.findIndex(q=>q.id===cq.id);if(idx>=0)quotes[idx]=cq;else quotes.unshift(cq);cq=null;view='list';render();}
+function genHash(){return Date.now().toString(36)+Math.random().toString(36).substr(2);}
+function shareQ(i){const q=quotes[i];const hash=genHash();localStorage.setItem(`coti_${hash}`,JSON.stringify(q));const url=`${window.location.origin}/landing.html?id=${hash}`;const msg=`Cotización #${q.id} - ${q.client}\n\n${url}`;if(navigator.share){navigator.share({title:'Cotización TABIRAÍCES',text:msg,url:url});}else{prompt('Copiar enlace (Ctrl+C o Cmd+C):',url);}}
 function footerHTML(){
   return`<div class="pft" style="border-radius:var(--r);margin-top:24px">
     <div>
@@ -357,6 +359,7 @@ function renderList(){
       <div class="qca">
         <button class="btn bgh bsm" onclick="prevQ(${i})">Ver</button>
         <button id="pdfbtn-${i}" class="btn bn bsm" onclick="downloadPDF(${i})">Descargar PDF</button>
+        <button class="btn bg bsm" onclick="shareQ(${i})">🔗 Compartir</button>
         <button class="btn bg bsm" onclick="editQ(${i})">Editar</button>
         <div class="st-wrap" id="sw-${i}" onclick="event.stopPropagation()">
           <button class="st-btn ${sCls(q.status)}" onclick="toggleDrop(${i},event)">● ${sLbl(q.status)} ▾</button>
