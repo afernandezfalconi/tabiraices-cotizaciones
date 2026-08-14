@@ -41,6 +41,28 @@ tr:hover{background:#f9f9f9}
 .empty{text-align:center;padding:60px 20px;color:var(--muted)}
 .empty-icon{font-size:60px;margin-bottom:20px;opacity:0.5}
 .footer{text-align:center;padding:20px;font-size:12px;color:var(--muted);margin-top:40px}
+.payment-section{background:var(--navy);border-radius:10px;margin:30px 0;overflow:hidden}
+.payment-header{background:rgba(0,0,0,.3);padding:12px 20px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,.08)}
+.payment-title{font-size:10px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:1px}
+.payment-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0}
+.payment-item{padding:16px;border-right:1px solid rgba(255,255,255,.08);color:#fff}
+.payment-item:last-child{border-right:none}
+.payment-label{font-size:9px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px}
+.payment-value{font-size:13px;font-weight:800;color:#fff;word-break:break-all;letter-spacing:0.3px}
+.payment-beneficiary{padding:14px 16px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px}
+.payment-beneficiary-icon{width:30px;height:30px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.payment-beneficiary-label{font-size:9px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:0.7px}
+.payment-beneficiary-name{font-size:13px;font-weight:800;color:#fff}
+.upload-section{background:#fff;border:2px dashed var(--gold);border-radius:10px;padding:30px;text-align:center;cursor:pointer;transition:all 0.2s}
+.upload-section:hover{background:#fafaf9;border-color:#E0A800}
+.upload-section.active{background:#fafaf9;border-color:#E0A800}
+.upload-icon{font-size:40px;margin-bottom:10px}
+.upload-text{font-size:14px;font-weight:700;color:var(--text);margin-bottom:5px}
+.upload-hint{font-size:12px;color:var(--muted)}
+.upload-input{display:none}
+.upload-status{padding:15px;background:#d1fae5;border:1px solid #6ee7b7;border-radius:8px;color:#065f46;font-weight:700;text-align:center;margin-top:15px;display:none}
+.upload-status.show{display:block}
+.upload-status.error{background:#fee2e2;border-color:#fca5a5;color:#b91c1c}
 </style>
 </head>
 <body>
@@ -62,6 +84,40 @@ tr:hover{background:#f9f9f9}
 
 <script>
 const fmt = (n) => new Intl.NumberFormat('es-MX', {style:'currency',currency:'MXN'}).format(n);
+
+function uploadComprobante(cotiId) {
+  const file = document.getElementById('fileInput').files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const cotiKey = `coti_${Object.keys(localStorage).find(k => k.startsWith('coti_') && JSON.parse(localStorage[k]).id === cotiId)}`;
+    const coti = JSON.parse(localStorage.getItem(cotiKey));
+
+    if (!coti) {
+      showStatus('Error: Cotización no encontrada', true);
+      return;
+    }
+
+    coti.comprobante = { archivo: e.target.result, fecha: new Date().toISOString(), nombre: file.name };
+    localStorage.setItem(cotiKey, JSON.stringify(coti));
+
+    showStatus('✅ Comprobante subido correctamente!');
+    setTimeout(() => {
+      document.getElementById('uploadArea').style.display = 'none';
+      document.getElementById('fileInput').value = '';
+    }, 2000);
+  };
+  reader.readAsDataURL(file);
+}
+
+function showStatus(msg, isError = false) {
+  const el = document.getElementById('uploadStatus');
+  el.textContent = msg;
+  el.classList.add('show');
+  if (isError) el.classList.add('error');
+  else el.classList.remove('error');
+}
 
 function loadLanding() {
   const params = new URLSearchParams(window.location.search);
@@ -159,6 +215,47 @@ function loadLanding() {
       <div class="actions">
         <button class="btn btn-primary" onclick="window.print()">🖨 Imprimir/PDF</button>
         <button class="btn btn-secondary" onclick="window.location.href='../'">← Volver</button>
+      </div>
+
+      <div class="payment-section">
+        <div class="payment-header">
+          <span style="font-size:16px">🏦</span>
+          <span class="payment-title">Pagos Oficiales TABIRAÍCES</span>
+        </div>
+        <div class="payment-grid">
+          <div class="payment-item">
+            <div class="payment-label">Número de Cuenta</div>
+            <div class="payment-value">1052 4608 508</div>
+            <div class="payment-label" style="margin-top:6px">Banco</div>
+            <div class="payment-value">BanCoppel</div>
+          </div>
+          <div class="payment-item">
+            <div class="payment-label">Núm. Cuenta CLABE</div>
+            <div class="payment-value">1376 2410 5246 0850 88</div>
+          </div>
+          <div class="payment-item">
+            <div class="payment-label">Número de Tarjeta</div>
+            <div class="payment-value">4169 1614 8835 0645</div>
+          </div>
+        </div>
+        <div class="payment-beneficiary">
+          <div class="payment-beneficiary-icon">👤</div>
+          <div>
+            <div class="payment-beneficiary-label">Beneficiaria</div>
+            <div class="payment-beneficiary-name">Karen Estrella Ventura Ruiz</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:#f9f9f9;border-radius:10px;padding:30px;margin:20px 0">
+        <div style="font-size:16px;font-weight:900;color:var(--navy);margin-bottom:20px;text-transform:uppercase">Subir Comprobante de Pago</div>
+        <div class="upload-section" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+          <div class="upload-icon">📸</div>
+          <div class="upload-text">Sube tu comprobante de pago</div>
+          <div class="upload-hint">Foto, PDF o imagen del depósito/transferencia</div>
+        </div>
+        <input type="file" id="fileInput" class="upload-input" accept="image/*,.pdf" onchange="uploadComprobante('${coti.id}')"/>
+        <div id="uploadStatus" class="upload-status"></div>
       </div>
     </div>
   `;
