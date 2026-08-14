@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contacto | TABIRÁ ICES</title>
+<meta name="description" content="Contacta con TABIRÁ ICES para cotizaciones y asesoría inmobiliaria">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="favicon.svg">
+<link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+
+<!-- ==================== HEADER ==================== -->
+<header class="bg-yellow-400 sticky top-0 z-50 shadow-lg">
+  <div class="contenedor flex items-center justify-between h-24 md:h-28">
+    <a href="index.html" class="flex items-center gap-3 py-2">
+      <div class="h-16 md:h-20 w-auto flex items-center">
+        <span class="text-2xl md:text-3xl font-bold text-black">🐦 TABIRÁ ICES</span>
+      </div>
+      <span class="hidden sm:block text-black/70 text-xs font-medium border-l border-black/20 pl-3">Puerto Escondido, Oax.</span>
+    </a>
+
+    <nav class="hidden md:flex items-center gap-1" aria-label="Principal">
+      <a href="index.html" class="px-4 py-2 rounded-md text-sm font-medium text-black/70 hover:text-black hover:bg-black/10 transition-colors">Inicio</a>
+      <a href="productos.html" class="px-4 py-2 rounded-md text-sm font-medium text-black/70 hover:text-black hover:bg-black/10 transition-colors">Productos</a>
+      <a href="contacto.html" class="px-4 py-2 rounded-md text-sm font-medium text-black bg-black/10">Contacto</a>
+      <a href="https://wa.me/5295812345671" target="_blank" rel="noopener" class="ml-2 btn-acento">Contactar</a>
+      <a href="login.html" class="px-4 py-2 rounded-md text-sm font-medium text-black/70 hover:text-black hover:bg-black/10 transition-colors border border-black/20">Acceso Interno</a>
+    </nav>
+
+    <button type="button" id="menu-btn" class="md:hidden text-black p-2 -mr-2" aria-expanded="false" aria-controls="menu-movil" aria-label="Abrir menú">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+  </div>
+
+  <div id="menu-movil" class="md:hidden hidden border-t border-black/10 bg-yellow-400">
+    <nav class="contenedor py-3 flex flex-col" aria-label="Principal móvil">
+      <a href="index.html" class="py-3 text-black/70">Inicio</a>
+      <a href="productos.html" class="py-3 text-black/70">Productos</a>
+      <a href="contacto.html" class="py-3 text-black font-medium">Contacto</a>
+      <a href="https://wa.me/5295812345671" target="_blank" rel="noopener" class="btn-acento mt-3">Contactar</a>
+      <a href="login.html" class="py-3 text-black/70">Acceso Interno</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<!-- ==================== HERO ==================== -->
+<section class="bg-yellow-50 py-12 md:py-16">
+  <div class="contenedor">
+    <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Contacto</h1>
+    <p class="text-gray-600 max-w-2xl">Contáctanos para cotizaciones, asesoría o más información sobre nuestros servicios</p>
+  </div>
+</section>
+
+<!-- ==================== CONTACTO ==================== -->
+<section class="bg-white py-16">
+  <div class="contenedor max-w-2xl">
+    <div class="grid md:grid-cols-2 gap-12 mb-12">
+      <div>
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Información de Contacto</h2>
+
+        <div class="space-y-6">
+          <div>
+            <h3 class="font-bold text-gray-900 mb-2">WhatsApp</h3>
+            <a href="https://wa.me/5295812345671" target="_blank" rel="noopener" class="text-yellow-600 hover:text-yellow-700 font-medium">+52 958 123 4567</a>
+          </div>
+
+          <div>
+            <h3 class="font-bold text-gray-900 mb-2">Instagram</h3>
+            <a href="https://www.instagram.com/tabiraices.ventanilla" target="_blank" rel="noopener" class="text-yellow-600 hover:text-yellow-700 font-medium">@tabiraices.ventanilla</a>
+          </div>
+
+          <div>
+            <h3 class="font-bold text-gray-900 mb-2">Ubicación</h3>
+            <p class="text-gray-600">Ventanilla, Colotepec<br>Puerto Escondido, Oaxaca</p>
+          </div>
+
+          <div>
+            <h3 class="font-bold text-gray-900 mb-2">Horario</h3>
+            <p class="text-gray-600">Lunes a Sábado<br>8:00 AM - 6:00 PM</p>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Envíanos un mensaje</h2>
+        <form id="contactoForm" class="space-y-4">
+          <div>
+            <label for="nombre" class="block text-sm font-medium text-gray-700 mb-2">Nombre</label>
+            <input type="text" id="nombre" name="nombre" required class="campo w-full" placeholder="Tu nombre">
+          </div>
+
+          <div>
+            <label for="tel" class="block text-sm font-medium text-gray-700 mb-2">Teléfono/WhatsApp</label>
+            <input type="tel" id="tel" name="tel" required class="campo w-full" placeholder="Ej: +52 9XX XXX XXXX">
+          </div>
+
+          <div>
+            <label for="asunto" class="block text-sm font-medium text-gray-700 mb-2">Asunto</label>
+            <select id="asunto" name="asunto" required class="campo w-full">
+              <option value="">Selecciona un asunto</option>
+              <option value="cotizacion-materiales">Cotización de materiales</option>
+              <option value="retroexcavadora">Servicio de retroexcavadora</option>
+              <option value="inmobiliaria">Consulta inmobiliaria</option>
+              <option value="otro">Otro</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="mensaje" class="block text-sm font-medium text-gray-700 mb-2">Mensaje</label>
+            <textarea id="mensaje" name="mensaje" required rows="4" class="campo w-full resize-none" placeholder="Cuéntanos tu necesidad"></textarea>
+          </div>
+
+          <button type="submit" class="btn-acento w-full">Enviar Mensaje</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="bg-yellow-50 rounded-lg p-8 text-center">
+      <p class="text-gray-600 mb-4">¿Prefieres comunicarte directamente?</p>
+      <a href="https://wa.me/5295812345671" target="_blank" rel="noopener" class="btn-acento inline-block">Abrir WhatsApp</a>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FOOTER ==================== -->
+<footer class="bg-gray-900 text-white">
+  <div class="contenedor py-8 text-center text-sm text-gray-400">
+    <p>&copy; <span id="year">2026</span> TABIRÁ ICES. Todos los derechos reservados.</p>
+    <p class="mt-2">Ventanilla, Colotepec | Puerto Escondido, Oaxaca</p>
+    <p class="mt-4"><a href="https://wa.me/5295812345671" target="_blank" rel="noopener" class="text-yellow-400 hover:text-yellow-300">WhatsApp: +52 958 123 4567</a></p>
+  </div>
+</footer>
+
+</main>
+
+<script src="assets/js/site.js"></script>
+<script>
+document.getElementById('contactoForm')?.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const nombre = document.getElementById('nombre').value;
+  const tel = document.getElementById('tel').value;
+  const asunto = document.getElementById('asunto').value;
+  const mensaje = document.getElementById('mensaje').value;
+
+  const texto = `Hola, me gustaría contactar por ${asunto}.\n\nNombre: ${nombre}\nTeléfono: ${tel}\n\nMensaje: ${mensaje}`;
+  const url = `https://wa.me/5295812345671?text=${encodeURIComponent(texto)}`;
+  window.open(url, '_blank');
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cotizador | TABIRÁ ICES</title>
+<meta name="description" content="Panel administrativo - Cotizador">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../favicon.svg">
+<link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body class="bg-gray-50">
+
+<script>
+// Verificar login antes de mostrar contenido
+if (!sessionStorage.getItem('tabiraices_logged')) {
+  window.location.href = '../login.html';
+}
+</script>
+
+<!-- ==================== HEADER ==================== -->
+<header class="bg-yellow-400 sticky top-0 z-50 shadow-lg">
+  <div class="contenedor flex items-center justify-between h-24 md:h-28">
+    <a href="../index.html" class="flex items-center gap-3 py-2">
+      <div class="h-16 md:h-20 w-auto flex items-center">
+        <span class="text-2xl md:text-3xl font-bold text-black">🐦 TABIRÁ ICES</span>
+      </div>
+      <span class="hidden sm:block text-black/70 text-xs font-medium border-l border-black/20 pl-3">Puerto Escondido, Oax.</span>
+    </a>
+
+    <nav class="hidden md:flex items-center gap-1" aria-label="Principal">
+      <a href="../index.html" class="px-4 py-2 rounded-md text-sm font-medium text-black/70 hover:text-black hover:bg-black/10 transition-colors">Inicio</a>
+      <a href="../productos.html" class="px-4 py-2 rounded-md text-sm font-medium text-black/70 hover:text-black hover:bg-black/10 transition-colors">Productos</a>
+      <a href="." class="px-4 py-2 rounded-md text-sm font-medium text-black bg-black/10">Cotizador</a>
+      <a href="../contacto.html" class="px-4 py-2 rounded-md text-sm font-medium text-black/70 hover:text-black hover:bg-black/10 transition-colors">Contacto</a>
+      <a href="https://wa.me/5295812345671" target="_blank" rel="noopener" class="ml-2 btn-acento">Cotizar por WhatsApp</a>
+    </nav>
+
+    <button type="button" id="menu-btn" class="md:hidden text-black p-2 -mr-2" aria-expanded="false" aria-controls="menu-movil" aria-label="Abrir menú">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+  </div>
+
+  <div id="menu-movil" class="md:hidden hidden border-t border-black/10 bg-yellow-400">
+    <nav class="contenedor py-3 flex flex-col" aria-label="Principal móvil">
+      <a href="../index.html" class="py-3 text-black/70">Inicio</a>
+      <a href="../productos.html" class="py-3 text-black/70">Productos</a>
+      <a href="." class="py-3 text-black font-medium">Cotizador</a>
+      <a href="../contacto.html" class="py-3 text-black/70">Contacto</a>
+      <a href="https://wa.me/5295812345671" target="_blank" rel="noopener" class="btn-acento mt-3">Cotizar por WhatsApp</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<!-- ==================== COTIZADOR ==================== -->
+<section class="py-12">
+  <div class="contenedor max-w-3xl">
+    <div class="bg-white rounded-lg shadow-lg p-8">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">Cotizador de Materiales</h1>
+      <p class="text-gray-600 mb-8">Selecciona los productos que necesitas y obtén una cotización rápida</p>
+
+      <form id="cotizadorForm" class="space-y-8">
+        <!-- TABIQUES -->
+        <div class="border-b pb-8">
+          <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <span>🧱</span> Tabiques
+          </h2>
+
+          <div class="space-y-4">
+            <div class="grid md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Tabique Pesado</label>
+                <input type="number" name="tabique_pesado" value="0" min="0" class="campo w-full" placeholder="Cantidad">
+                <p class="text-xs text-gray-500 mt-1">$8.00 c/u</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Tabique Ligero</label>
+                <input type="number" name="tabique_ligero" value="0" min="0" class="campo w-full" placeholder="Cantidad">
+                <p class="text-xs text-gray-500 mt-1">$10.00 c/u</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- POSTES -->
+        <div class="border-b pb-8">
+          <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <span>📍</span> Postes
+          </h2>
+
+          <div class="space-y-4">
+            <div class="grid md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Postes Lineales 10x10</label>
+                <input type="number" name="postes_lineales" value="0" min="0" class="campo w-full" placeholder="Cantidad">
+                <p class="text-xs text-gray-500 mt-1">$250.00 c/u</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Postes Esquineros 12x12</label>
+                <input type="number" name="postes_esquineros" value="0" min="0" class="campo w-full" placeholder="Cantidad">
+                <p class="text-xs text-gray-500 mt-1">$250.00 c/u</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PRODUCTOS PERSONALIZADOS -->
+        <div class="border-b pb-8">
+          <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <span>➕</span> Productos Personalizados
+          </h2>
+
+          <div id="productosPersonalizados" class="space-y-4 mb-4"></div>
+
+          <button type="button" id="btnAgregarProducto" class="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 px-4 rounded">
+            + Agregar Producto
+          </button>
+        </div>
+
+        <!-- RETROEXCAVADORA -->
+        <div class="border-b pb-8">
+          <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <span>⛏️</span> Retroexcavadora
+          </h2>
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">¿Necesitas servicio de retroexcavadora?</label>
+              <div class="flex gap-4">
+                <label class="flex items-center">
+                  <input type="radio" name="retroexcavadora" value="no" checked class="mr-2"> No
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="retroexcavadora" value="si" class="mr-2"> Sí
+                </label>
+              </div>
+            </div>
+            <div id="retroDetalles" class="hidden">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Horas estimadas</label>
+              <input type="number" name="horas_retro" value="0" min="0" class="campo w-full" placeholder="Cantidad de horas">
+              <p class="text-xs text-gray-500 mt-1">$400 x hora</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- DATOS CONTACTO -->
+        <div class="bg-yellow-50 rounded-lg p-6">
+          <h3 class="font-bold text-gray-900 mb-4">Tus Datos</h3>
+          <div class="space-y-3">
+            <input type="text" name="nombre" class="campo w-full" placeholder="Tu nombre" required>
+            <input type="tel" name="telefono" class="campo w-full" placeholder="Tu teléfono/WhatsApp" required>
+          </div>
+        </div>
+
+        <!-- RESUMEN Y ACCIÓN -->
+        <div class="bg-gray-100 rounded-lg p-6 space-y-4">
+          <div class="flex justify-between items-center text-lg">
+            <span class="font-bold text-gray-900">Subtotal:</span>
+            <span class="text-2xl font-bold text-yellow-600" id="subtotal">$0.00</span>
+          </div>
+          <div class="pt-4 border-t border-gray-300 flex justify-between items-center">
+            <span class="font-bold text-gray-900">TOTAL:</span>
+            <span class="text-3xl font-bold text-gray-900" id="total">$0.00</span>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-acento w-full text-lg py-4">Enviar Cotización por WhatsApp</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FOOTER ==================== -->
+<footer class="bg-gray-900 text-white mt-12">
+  <div class="contenedor py-8 text-center text-sm text-gray-400">
+    <p>&copy; <span id="year">2026</span> TABIRÁ ICES. Todos los derechos reservados.</p>
+    <p class="mt-2">Ventanilla, Colotepec | Puerto Escondido, Oaxaca</p>
+    <p class="mt-4"><a href="https://wa.me/5295812345671" target="_blank" rel="noopener" class="text-yellow-400 hover:text-yellow-300">WhatsApp: +52 958 123 4567</a></p>
+  </div>
+</footer>
+
+</main>
+
+<script src="../assets/js/site.js"></script>
+<script>
+const WHATSAPP = '5295812345671';
+const PRECIOS = {
+  tabique_pesado: 8.00,
+  tabique_ligero: 10.00,
+  postes_lineales: 250.00,
+  postes_esquineros: 250.00,
+  horas_retro: 400
+};
+
+const form = document.getElementById('cotizadorForm');
+const retroRadios = document.querySelectorAll('input[name="retroexcavadora"]');
+const retroDetalles = document.getElementById('retroDetalles');
+
+retroRadios.forEach(radio => {
+  radio.addEventListener('change', () => {
+    retroDetalles.classList.toggle('hidden', radio.value === 'no');
+  });
+});
+
+// Agregar producto personalizado
+document.getElementById('btnAgregarProducto').addEventListener('click', () => {
+  const id = 'prod_' + Date.now();
+  const html = `
+    <div class="producto-personalizado border border-gray-200 rounded p-4 bg-gray-50">
+      <div class="grid grid-cols-12 gap-2 items-end">
+        <input type="text" placeholder="Concepto (ej: Arena fina)" class="campo col-span-5" required>
+        <input type="number" placeholder="Cantidad" min="0" step="1" class="campo col-span-3" required>
+        <input type="text" placeholder="Precio" step="0.01" class="campo col-span-3" required>
+        <button type="button" class="btn-eliminar bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded col-span-1">
+          ✕
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('productosPersonalizados').insertAdjacentHTML('beforeend', html);
+
+  // Event listeners para el nuevo producto
+  const lastProd = document.querySelector('.producto-personalizado:last-child');
+  lastProd.querySelector('input').focus();
+  lastProd.querySelectorAll('input').forEach(input => {
+    input.addEventListener('input', calcularTotal);
+  });
+  lastProd.querySelector('.btn-eliminar').addEventListener('click', () => {
+    lastProd.remove();
+    calcularTotal();
+  });
+
+  calcularTotal();
+});
+
+form.addEventListener('input', calcularTotal);
+form.addEventListener('change', calcularTotal);
+
+function calcularTotal() {
+  let subtotal = 0;
+
+  Object.entries(PRECIOS).forEach(([campo, precio]) => {
+    if (campo === 'horas_retro') {
+      if (document.querySelector('input[name="retroexcavadora"]:checked').value === 'si') {
+        const cantidad = parseInt(document.querySelector(`input[name="${campo}"]`).value) || 0;
+        subtotal += cantidad * precio;
+      }
+    } else {
+      const input = document.querySelector(`input[name="${campo}"]`);
+      if (input) {
+        const cantidad = parseInt(input.value) || 0;
+        subtotal += cantidad * precio;
+      }
+    }
+  });
+
+  // Agregar productos personalizados
+  document.querySelectorAll('.producto-personalizado').forEach(item => {
+    const cantidad = parseInt(item.querySelector('input[type="number"]').value) || 0;
+    const precio = parseFloat(item.querySelector('input[type="text"]:last-of-type').value) || 0;
+    subtotal += cantidad * precio;
+  });
+
+  document.getElementById('subtotal').textContent = '$' + subtotal.toFixed(2);
+  document.getElementById('total').textContent = '$' + subtotal.toFixed(2);
+}
+
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+
+  const nombre = document.querySelector('input[name="nombre"]').value;
+  const telefono = document.querySelector('input[name="telefono"]').value;
+  const subtotal = document.getElementById('subtotal').textContent;
+
+  let mensaje = `*COTIZACIÓN TABIRÁ ICES*\n\n`;
+  mensaje += `*Cliente:* ${nombre}\n`;
+  mensaje += `*Teléfono:* ${telefono}\n\n`;
+  mensaje += `*PRODUCTOS:*\n`;
+
+  // Tabiques
+  const tabique_pesado = parseInt(document.querySelector('input[name="tabique_pesado"]').value) || 0;
+  const tabique_ligero = parseInt(document.querySelector('input[name="tabique_ligero"]').value) || 0;
+  const postes_lineales = parseInt(document.querySelector('input[name="postes_lineales"]').value) || 0;
+  const postes_esquineros = parseInt(document.querySelector('input[name="postes_esquineros"]').value) || 0;
+
+  if (tabique_pesado > 0) mensaje += `- Tabique Pesado: ${tabique_pesado} x $8.00 = $${(tabique_pesado * 8).toFixed(2)}\n`;
+  if (tabique_ligero > 0) mensaje += `- Tabique Ligero: ${tabique_ligero} x $10.00 = $${(tabique_ligero * 10).toFixed(2)}\n`;
+  if (postes_lineales > 0) mensaje += `- Postes Lineales 10x10: ${postes_lineales} x $250.00 = $${(postes_lineales * 250).toFixed(2)}\n`;
+  if (postes_esquineros > 0) mensaje += `- Postes Esquineros 12x12: ${postes_esquineros} x $250.00 = $${(postes_esquineros * 250).toFixed(2)}\n`;
+
+  // Retroexcavadora
+  if (document.querySelector('input[name="retroexcavadora"]:checked').value === 'si') {
+    const horas = parseInt(document.querySelector('input[name="horas_retro"]').value) || 0;
+    if (horas > 0) mensaje += `- Retroexcavadora: ${horas} horas x $400 = $${(horas * 400).toFixed(2)}\n`;
+  }
+
+  // Productos personalizados
+  document.querySelectorAll('.producto-personalizado').forEach(item => {
+    const concepto = item.querySelector('input[type="text"]').value;
+    const cantidad = parseInt(item.querySelector('input[type="number"]').value) || 0;
+    const precio = parseFloat(item.querySelector('input[type="text"]:last-of-type').value) || 0;
+    if (cantidad > 0 && concepto && precio > 0) {
+      mensaje += `- ${concepto}: ${cantidad} x $${precio.toFixed(2)} = $${(cantidad * precio).toFixed(2)}\n`;
+    }
+  });
+
+  mensaje += `\n*TOTAL: ${subtotal}*`;
+
+  const url = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(mensaje)}`;
+  window.open(url, '_blank');
+});
+</script>
+</body>
+</html>
