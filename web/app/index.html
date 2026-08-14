@@ -83,6 +83,24 @@ body{font-family:Montserrat,sans-serif;background:var(--bg);color:var(--text);mi
 .flt-cnt{background:rgba(255,255,255,.25);border-radius:10px;padding:1px 7px;font-size:10px;font-weight:900}
 .flt:not(.active) .flt-cnt{background:var(--surface2);color:var(--muted)}
 .empty-flt{background:var(--surface);border-radius:var(--r);border:1.5px dashed var(--border);padding:36px 20px;text-align:center;color:var(--muted)}
+/* TABS NAVIGATION */
+.tabs-nav{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:24px;flex-wrap:wrap}
+.tab-btn{padding:14px 20px;background:transparent;border:none;font-family:Montserrat,sans-serif;font-size:12px;font-weight:800;cursor:pointer;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold)}
+/* CENTRO STATS */
+.centro-header{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px}
+.centro-stat{background:var(--surface);border-radius:var(--r);padding:16px;border-left:4px solid var(--gold)}
+.centro-stat-label{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:6px}
+.centro-stat-value{font-size:24px;font-weight:900;color:var(--text)}
+.centro-stat-sub{font-size:11px;color:var(--muted);margin-top:4px}
+/* STATUS ICONS */
+.status-icon{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-size:12px;font-weight:800}
+.status-paid{background:var(--bpa-bg);color:var(--bpa-c)}
+.status-sent{background:var(--bs-bg);color:var(--bs-c)}
+.status-pending{background:var(--bp-bg);color:var(--bp-c)}
+.status-receipt{background:#dbeafe;color:#0369a1;cursor:pointer}
+.status-receipt:hover{opacity:.8}
 .panel{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);overflow:hidden;transition:background .3s,border .3s}
 .ph{background:var(--navy);padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
 .pht{font-size:15px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase}
@@ -149,6 +167,39 @@ hr.dv{border:none;border-top:1.5px solid var(--div);margin:16px 0}
 .pfs{font-size:12px;color:rgba(255,255,255,.5);margin-top:5px;font-weight:500}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spin{width:12px;height:12px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:-1px}
+/* MIS COTIZACIONES */
+.mis-cont{padding:0}
+.mis-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:20px}
+.stat-card{background:var(--surface);border-radius:var(--r);padding:18px;border:1px solid var(--border);text-align:center;transition:all .2s}
+.stat-card:hover{border-color:var(--gold);box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.stat-num{font-size:28px;font-weight:900;line-height:1}
+.stat-label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-top:8px;letter-spacing:.5px}
+.filter-bar{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.filter-btn{padding:8px 16px;background:var(--surface);border:1.5px solid var(--border);border-radius:20px;font-family:Montserrat,sans-serif;font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .15s;text-transform:uppercase;letter-spacing:.5px}
+.filter-btn:hover{border-color:var(--gold);color:var(--gold)}
+.filter-btn.active{background:var(--gold);color:var(--navy);border-color:var(--gold)}
+.quotes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.quote-card{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);padding:16px;transition:all .2s}
+.quote-card:hover{border-color:var(--gold);box-shadow:0 4px 16px rgba(0,0,0,.1)}
+.quote-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;gap:12px}
+.quote-id{font-size:14px;font-weight:900;color:var(--navy)}
+.quote-date{font-size:11px;color:var(--muted);margin-top:2px}
+.quote-status-badge{display:inline-block;padding:6px 12px;border-radius:20px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+.quote-details{margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:12px}
+.quote-label{font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.quote-total{font-size:13px;font-weight:700;margin-bottom:12px;padding:10px;background:var(--surface2);border-radius:6px}
+.quote-footer{display:flex;flex-direction:column;gap:10px}
+/* CENTRO */
+.centro-cont{padding:0}
+.centro-header{margin-bottom:20px}
+.centro-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:24px}
+.centro-stat{background:var(--surface);border-radius:var(--r);padding:16px;border-left:4px solid var(--gold);display:flex;gap:12px;align-items:flex-start;transition:all .2s}
+.centro-stat:hover{box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.stat-icon{font-size:32px;flex-shrink:0}
+.stat-label{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.stat-value{font-size:20px;font-weight:900;color:var(--text)}
+.centro-table{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);overflow-x:auto}
+.empty-state{text-align:center;padding:60px 20px;background:var(--surface);border-radius:var(--r);border:1.5px dashed var(--border);color:var(--muted)}
 </style>
 </head>
 <body>
@@ -269,7 +320,9 @@ async function downloadPDF_OLD(qi){
   }catch(e){alert('Error PDF: '+e.message);}
   finally{if(btn){btn.disabled=false;btn.innerHTML='Descargar PDF';}}
 }
+let module='nueva';
 function showView(v){view=v;render();}
+function showModule(m){module=m;view='list';activeFilter='all';render();}
 function setFilter(f){activeFilter=f;render();}
 function newQuote(){const ids=quotes.map(q=>parseInt(q.id)||0);const next=String((ids.length?Math.max(...ids):20)+1).padStart(4,'0');cq={id:next,client:'',project:'',location:'',payment:'',date:new Date().toISOString().split('T')[0],status:'pending',ivaRate:0,items:[{desc:'',unit:'',qty:''}]};view='form';render();}
 function editQ(i){cq=JSON.parse(JSON.stringify(quotes[i]));cq.ivaRate=cq.ivaRate||0;view='form';render();}
@@ -438,11 +491,40 @@ function toggleDrop(i,e){
   if(d)d.style.display=d.style.display==='none'||!d.style.display?'block':'none';
 }
 document.addEventListener('click',()=>document.querySelectorAll('.st-drop').forEach(d=>d.style.display='none'));
+function renderMisQuotes(){
+  const filtered=Object.entries(localStorage).filter(([k])=>k.startsWith('coti_')).map(([,v])=>JSON.parse(v)).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(!filtered.length)return`<div class="empty-state"><div style="font-size:60px">📋</div><p style="margin-top:10px;color:var(--muted);font-size:14px">No hay cotizaciones yet</p></div>`;
+  const stats={total:filtered.length,paid:filtered.filter(q=>q.status==='paid').length,sent:filtered.filter(q=>q.status==='sent').length,pending:filtered.filter(q=>!q.status||q.status==='pending').length};
+  const filtered2=activeFilter==='all'?filtered:filtered.filter(q=>{if(activeFilter==='paid')return q.status==='paid';if(activeFilter==='sent')return q.status==='sent';return!q.status||q.status==='pending'});
+  return`<div class="mis-cont"><div class="mis-stats"><div class="stat-card"><div class="stat-num" style="color:var(--gold)">${stats.total}</div><div class="stat-label">Total</div></div><div class="stat-card"><div class="stat-num" style="color:#10b981">${stats.paid}</div><div class="stat-label">Pagadas</div></div><div class="stat-card"><div class="stat-num" style="color:#3b82f6">${stats.sent}</div><div class="stat-label">Enviadas</div></div><div class="stat-card"><div class="stat-num" style="color:#f59e0b">${stats.pending}</div><div class="stat-label">Pendientes</div></div></div><div class="filter-bar"><button class="filter-btn ${activeFilter==='all'?'active':''}" onclick="setFilter('all')">Todas</button><button class="filter-btn ${activeFilter==='paid'?'active':''}" onclick="setFilter('paid')">Pagadas</button><button class="filter-btn ${activeFilter==='sent'?'active':''}" onclick="setFilter('sent')">Enviadas</button><button class="filter-btn ${activeFilter==='pending'?'active':''}" onclick="setFilter('pending')">Pendientes</button></div><div class="quotes-grid">${filtered2.map((q,idx)=>{const paid=q.comprobante?'✅':'—';return`<div class="quote-card"><div class="quote-header"><div><div class="quote-id">#${q.id}</div><div class="quote-date">${q.date}</div></div><div class="quote-status-badge" style="background:${q.status==='paid'?'#d1fae5':q.status==='sent'?'#dbeafe':'#fef3c7'};color:${q.status==='paid'?'#065f46':q.status==='sent'?'#0c4a6e':'#92400e'}">
+${q.status==='paid'?'💳 PAGADA':q.status==='sent'?'📤 ENVIADA':'⏳ PENDIENTE'}</div></div><div class="quote-details"><div><span class="quote-label">Cliente</span><div style="font-weight:700;font-size:14px">${q.client}</div></div><div style="margin-top:10px"><span class="quote-label">Proyecto</span><div style="font-weight:700;font-size:14px">${q.project}</div></div></div><div class="quote-total">TOTAL: <strong>${fmt(q.items.reduce((s,it)=>s+(parseFloat(it.unit)||0)*(parseFloat(it.qty)||0),0)*(1+(parseFloat(q.ivaRate)||0)/100))}</strong></div><div class="quote-footer"><div style="display:flex;gap:8px"><button class="btn bg" style="flex:1;padding:8px 12px;font-size:12px" onclick="showView('preview');view='preview';quotes[${idx}]=quotes[${idx}];render()">👁 Ver</button><button class="btn bn" style="flex:1;padding:8px 12px;font-size:12px;color:#fff" onclick="shareQ(${idx})">🔗 Compartir</button></div><div style="font-size:11px;color:var(--muted);margin-top:8px">Comprobante: ${paid}</div></div></div>`}).join('')}</div></div>`;
+}
+function renderCentro(){
+  const all=Object.entries(localStorage).filter(([k])=>k.startsWith('coti_')).map(([,v])=>JSON.parse(v)).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const paid=all.filter(q=>q.status==='paid');const sent=all.filter(q=>q.status==='sent');const pending=all.filter(q=>!q.status||q.status==='pending');
+  const totalAmount=all.reduce((s,q)=>s+q.items.reduce((ss,it)=>ss+(parseFloat(it.unit)||0)*(parseFloat(it.qty)||0),0)*(1+(parseFloat(q.ivaRate)||0)/100),0);
+  const paidAmount=paid.reduce((s,q)=>s+q.items.reduce((ss,it)=>ss+(parseFloat(it.unit)||0)*(parseFloat(it.qty)||0),0)*(1+(parseFloat(q.ivaRate)||0)/100),0);
+  const missingReceipts=all.filter(q=>!q.comprobante).length;
+  return`<div class="centro-cont"><div class="centro-header"><h2 style="font-size:24px;font-weight:900;color:var(--navy)">Centro de Cotizaciones</h2><p style="color:var(--muted);font-size:13px;margin-top:5px">Dashboard de cotizaciones y pagos</p></div><div class="centro-stats"><div class="centro-stat"><div class="stat-icon">💰</div><div><div class="stat-label">Total Facturado</div><div class="stat-value">${fmt(totalAmount)}</div></div></div><div class="centro-stat"><div class="stat-icon">✅</div><div><div class="stat-label">Pagado</div><div class="stat-value">${fmt(paidAmount)}</div></div></div><div class="centro-stat"><div class="stat-icon">⏳</div><div><div class="stat-label">Pendiente</div><div class="stat-value">${fmt(totalAmount-paidAmount)}</div></div></div><div class="centro-stat"><div class="stat-icon">📁</div><div><div class="stat-label">Falta Comprobante</div><div class="stat-value" style="color:#ef4444">${missingReceipts}</div></div></div></div><div class="centro-table"><table style="width:100%;border-collapse:collapse"><thead><tr style="background:var(--navy);color:#fff"><th style="padding:12px;text-align:left;font-size:12px;font-weight:800;text-transform:uppercase">ID</th><th style="padding:12px;text-align:left;font-size:12px;font-weight:800;text-transform:uppercase">Cliente</th><th style="padding:12px;text-align:left;font-size:12px;font-weight:800;text-transform:uppercase">Fecha</th><th style="padding:12px;text-align:right;font-size:12px;font-weight:800;text-transform:uppercase">Total</th><th style="padding:12px;text-align:center;font-size:12px;font-weight:800;text-transform:uppercase">Estado</th><th style="padding:12px;text-align:center;font-size:12px;font-weight:800;text-transform:uppercase">Comprobante</th></tr></thead><tbody>${all.map((q,idx)=>{const total=q.items.reduce((s,it)=>s+(parseFloat(it.unit)||0)*(parseFloat(it.qty)||0),0)*(1+(parseFloat(q.ivaRate)||0)/100);const statusColor=q.status==='paid'?'#10b981':q.status==='sent'?'#3b82f6':'#f59e0b';return`<tr style="border-bottom:1px solid var(--border);hover-bgcolor:#f9f9f9"><td style="padding:12px;font-weight:700">#${q.id}</td><td style="padding:12px">${q.client}</td><td style="padding:12px;font-size:12px;color:var(--muted)">${q.date}</td><td style="padding:12px;text-align:right;font-weight:800">${fmt(total)}</td><td style="padding:12px;text-align:center"><span style="background:${statusColor}20;color:${statusColor};padding:6px 12px;border-radius:6px;font-size:11px;font-weight:700;display:inline-block">${q.status==='paid'?'✅ PAGADA':q.status==='sent'?'📤 ENVIADA':'⏳ PENDIENTE'}</span></td><td style="padding:12px;text-align:center">${q.comprobante?'✅':'<span style="color:var(--muted)">—</span>'}</td></tr>`}).join('')}</tbody></table></div></div>`;
+}
 function render(){
   const app=document.getElementById('app');
-  if(view==='list')app.innerHTML=renderList();
-  else if(view==='form'){app.innerHTML=renderForm();setTimeout(()=>attachL(),0);}
-  else if(view==='preview')app.innerHTML=renderPreview();
+  let content='';
+  if(module==='nueva'){
+    if(view==='list')content=renderList();
+    else if(view==='form'){content=renderForm();setTimeout(()=>attachL(),0);}
+    else if(view==='preview')content=renderPreview();
+  }else if(module==='mis'){
+    content=renderMisQuotes();
+  }else if(module==='centro'){
+    content=renderCentro();
+  }
+  const nav=`<div class="tabs-nav">
+    <button class="tab-btn ${module==='nueva'?'active':''}" onclick="showModule('nueva')">➕ Nueva Cotización</button>
+    <button class="tab-btn ${module==='mis'?'active':''}" onclick="showModule('mis')">📋 Mis Cotizaciones</button>
+    <button class="tab-btn ${module==='centro'?'active':''}" onclick="showModule('centro')">🏢 Centro</button>
+  </div>`;
+  app.innerHTML=nav+content;
 }
 render();
 
