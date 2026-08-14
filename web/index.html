@@ -27,75 +27,105 @@
 </head>
 <body>
 
+<style>
+:root {
+  --color-dark: #022C43;
+  --color-medium: #053F5E;
+  --color-light: #115173;
+  --color-accent: #FFD700;
+  --color-text: #1a1a1a;
+  --color-text-light: #4a5568;
+}
+</style>
+
 <!-- ==================== HEADER ==================== -->
-<header class="bg-yellow-400 sticky top-0 z-50 shadow-lg">
-  <div class="contenedor flex items-center justify-between h-24 md:h-28">
-    <a href="index.html" class="flex items-center gap-3 py-2">
-      <div class="h-16 md:h-20 w-auto flex items-center">
-        <span class="text-2xl md:text-3xl font-bold text-black">🐦 TABIRÁ ICES</span>
+<header class="fixed top-0 left-0 right-0 z-50" style="background-color: var(--color-dark); backdrop-filter: blur(10px);">
+  <div class="contenedor flex items-center justify-between h-20 md:h-24">
+    <a href="index.html" class="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
+      <div class="h-14 md:h-16 w-auto flex items-center">
+        <span class="text-2xl md:text-3xl font-bold text-white">TABIRAÍCES</span>
       </div>
-      <span class="hidden sm:block text-black/70 text-xs font-medium border-l border-black/20 pl-3">Puerto Escondido, Oax.</span>
+      <span class="hidden sm:block text-white/70 text-xs font-medium border-l border-white/20 pl-3">Puerto Escondido, Oax.</span>
     </a>
 
     <nav class="hidden md:flex items-center gap-1" aria-label="Principal">
-      <a href="index.html" class="px-4 py-2 rounded-md text-sm font-medium text-black bg-black/10">Inicio</a>
-      <a href="productos.html" class="px-4 py-2 rounded-md text-sm font-medium text-black/70 hover:text-black hover:bg-black/10 transition-colors">Productos</a>
-      <a href="contacto.html" class="px-4 py-2 rounded-md text-sm font-medium text-black/70 hover:text-black hover:bg-black/10 transition-colors">Contacto</a>
-      <a href="https://wa.me/5295812345671" target="_blank" rel="noopener" class="ml-2 btn-acento">Contactar</a>
-      <a href="login.html" class="px-4 py-2 rounded-md text-sm font-medium text-black/70 hover:text-black hover:bg-black/10 transition-colors border border-black/20">Acceso Interno</a>
+      <a href="index.html" class="px-4 py-2 rounded-md text-sm font-medium text-white/90 hover:text-white hover:bg-white/10 transition-colors cursor-pointer">Inicio</a>
+      <a href="productos.html" class="px-4 py-2 rounded-md text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer">Productos</a>
+      <a href="contacto.html" class="px-4 py-2 rounded-md text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer">Contacto</a>
+      <a href="https://wa.me/5295812345671" target="_blank" rel="noopener" style="background-color: var(--color-accent);" class="ml-2 px-6 py-2 rounded-lg font-bold text-black hover:opacity-90 transition-opacity cursor-pointer">Contactar</a>
+      <a href="login.html" style="border-color: var(--color-accent); color: var(--color-accent);" class="px-4 py-2 rounded-md text-sm font-medium hover:bg-white/10 transition-colors cursor-pointer border">Acceso</a>
     </nav>
 
-    <button type="button" id="menu-btn" class="md:hidden text-black p-2 -mr-2" aria-expanded="false" aria-controls="menu-movil" aria-label="Abrir menú">
+    <button type="button" id="menu-btn" class="md:hidden text-white p-2 -mr-2 cursor-pointer" aria-expanded="false" aria-controls="menu-movil" aria-label="Abrir menú">
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
     </button>
   </div>
 
-  <div id="menu-movil" class="md:hidden hidden border-t border-black/10 bg-yellow-400">
+  <div id="menu-movil" class="md:hidden hidden border-t border-white/10" style="background-color: var(--color-medium);">
     <nav class="contenedor py-3 flex flex-col" aria-label="Principal móvil">
-      <a href="index.html" class="py-3 text-black font-medium">Inicio</a>
-      <a href="productos.html" class="py-3 text-black/70">Productos</a>
-      <a href="contacto.html" class="py-3 text-black/70">Contacto</a>
-      <a href="https://wa.me/5295812345671" target="_blank" rel="noopener" class="btn-acento mt-3">Contactar</a>
-      <a href="login.html" class="py-3 text-black/70">Acceso Interno</a>
+      <a href="index.html" class="py-3 text-white font-medium cursor-pointer hover:opacity-80 transition-opacity">Inicio</a>
+      <a href="productos.html" class="py-3 text-white/70 cursor-pointer hover:opacity-80 transition-opacity">Productos</a>
+      <a href="contacto.html" class="py-3 text-white/70 cursor-pointer hover:opacity-80 transition-opacity">Contacto</a>
+      <a href="https://wa.me/5295812345671" target="_blank" rel="noopener" style="background-color: var(--color-accent);" class="px-4 py-2 rounded-lg font-bold text-black mt-3 text-center cursor-pointer hover:opacity-90 transition-opacity">Contactar</a>
+      <a href="login.html" class="py-3 text-white/70 cursor-pointer hover:opacity-80 transition-opacity">Acceso Interno</a>
     </nav>
   </div>
 </header>
 
+<!-- Spacer para fixed header -->
+<div class="h-20 md:h-24"></div>
+
 <main>
 
 <!-- ==================== HERO ==================== -->
-<section class="bg-gradient-to-b from-yellow-50 to-white">
-  <div class="contenedor py-16 md:py-24 grid lg:grid-cols-2 gap-12 items-center">
+<section style="background: linear-gradient(135deg, var(--color-dark) 0%, var(--color-medium) 100%);">
+  <div class="contenedor py-20 md:py-32 grid lg:grid-cols-2 gap-12 items-center">
     <div>
-      <p class="flex items-center gap-2 text-yellow-600 etiqueta mb-4">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-        Ventanilla, Colotepec | A minutos de Puerto Escondido
-      </p>
-      <h1 class="text-4xl md:text-5xl font-bold leading-tight mb-4 text-gray-900">
-        Materiales de construcción
-        <span class="text-yellow-500">de calidad</span>
-      </h1>
-      <p class="text-gray-600 text-lg mb-8 leading-relaxed">
-        Bloques, tabiconas, postes para cercar y servicio de retroexcavadora.
-        Cotización rápida y precios competitivos en la zona de Puerto Escondido.
-      </p>
-
-      <div class="flex flex-wrap gap-3 mb-10">
-        <a href="https://wa.me/5295812345671?text=Hola%2C%20quisiera%20solicitar%20una%20cotizaci%C3%B3n%20de%20materiales." target="_blank" rel="noopener" class="btn-acento">
-          Contactar por WhatsApp
-        </a>
-        <a href="productos.html" class="btn-borde">Ver productos</a>
+      <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6" style="background-color: var(--color-accent); background-color: rgba(255, 215, 0, 0.15); border: 1px solid var(--color-accent);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--color-accent);" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+        <span class="text-sm font-semibold text-white">Ventanilla, Colotepec • Puerto Escondido</span>
       </div>
 
-      <ul class="flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-600">
-        <li class="flex items-center gap-2"><span class="text-yellow-500" aria-hidden="true">✓</span> Precios competitivos</li>
-        <li class="flex items-center gap-2"><span class="text-yellow-500" aria-hidden="true">✓</span> Entrega rápida</li>
-        <li class="flex items-center gap-2"><span class="text-yellow-500" aria-hidden="true">✓</span> Cotización gratis</li>
+      <h1 class="text-5xl md:text-6xl font-bold leading-tight mb-6 text-white">
+        Materiales de <br>
+        <span style="color: var(--color-accent);">construcción</span> de calidad
+      </h1>
+
+      <p class="text-xl text-white/80 mb-10 leading-relaxed max-w-lg">
+        Bloques, tabiconas, postes para cercar y servicio de retroexcavadora. Cotización rápida y precios competitivos.
+      </p>
+
+      <div class="flex flex-wrap gap-4 mb-12">
+        <a href="https://wa.me/5295812345671?text=Hola%2C%20quisiera%20solicitar%20una%20cotizaci%C3%B3n%20de%20materiales." target="_blank" rel="noopener" style="background-color: var(--color-accent);" class="px-8 py-4 rounded-lg font-bold text-black hover:opacity-90 transition-opacity cursor-pointer shadow-lg hover:shadow-xl">
+          Contactar por WhatsApp
+        </a>
+        <a href="productos.html" class="px-8 py-4 rounded-lg font-bold text-white border-2 border-white hover:bg-white/10 transition-colors cursor-pointer">
+          Ver catálogo
+        </a>
+      </div>
+
+      <ul class="flex flex-wrap gap-6 text-white/80">
+        <li class="flex items-center gap-3">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--color-accent);" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          <span class="text-sm">Precios competitivos</span>
+        </li>
+        <li class="flex items-center gap-3">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--color-accent);" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          <span class="text-sm">Entrega rápida</span>
+        </li>
+        <li class="flex items-center gap-3">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--color-accent);" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          <span class="text-sm">Cotización gratis</span>
+        </li>
       </ul>
     </div>
 
-    <div class="flex items-center justify-center">
-      <div class="text-6xl">🐦</div>
+    <div class="hidden lg:flex items-center justify-center">
+      <div class="relative w-80 h-80 rounded-2xl" style="background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(17, 81, 115, 0.1) 100%); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2);">
+        <div class="absolute inset-0 flex items-center justify-center">
+          <span class="text-8xl">🏗️</span>
+        </div>
+      </div>
     </div>
   </div>
 </section>
