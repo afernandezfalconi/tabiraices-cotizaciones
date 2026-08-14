@@ -132,19 +132,19 @@ function updateKPIs() {
   if (dispEl) dispEl.textContent = t.cantidad_disponible || 0;
 }
 
-export function openIngresoForm() {
+function openIngresoForm() {
   const form = document.getElementById('ingreso-form');
   if (form) form.style.display = 'block';
 }
 
-export function closeIngresoForm() {
+function closeIngresoForm() {
   const form = document.getElementById('ingreso-form');
   if (form) form.style.display = 'none';
   document.getElementById('ingreso-producto').value = '';
   document.getElementById('ingreso-cantidad').value = '';
 }
 
-export async function handleIngresoSubmit() {
+async function handleIngresoSubmit() {
   const productoId = document.getElementById('ingreso-producto').value;
   const cantidad = parseInt(document.getElementById('ingreso-cantidad').value);
 
@@ -180,12 +180,12 @@ export async function handleIngresoSubmit() {
   }
 }
 
-export async function startInventorySync() {
+async function startInventorySync() {
   await syncInventory();
   inventorySyncInterval = setInterval(syncInventory, 30000);
 }
 
-export async function syncInventory() {
+async function syncInventory() {
   try {
     const userId = sessionStorage.getItem('tabiraices_user');
     const userRole = sessionStorage.getItem('tabiraices_user_role') || 'vendedor';
@@ -210,7 +210,7 @@ export async function syncInventory() {
   }
 }
 
-export function stopInventorySync() {
+function stopInventorySync() {
   if (inventorySyncInterval) clearInterval(inventorySyncInterval);
 }
 
