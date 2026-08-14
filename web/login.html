@@ -3,170 +3,293 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Acceso Interno | TABIRÁ ICES</title>
+<title>Acceso Interno | TABIRAÍCES</title>
 <meta name="robots" content="noindex, nofollow">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/styles.css">
+<link rel="icon" href="assets/img/logo-main.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-  body {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    background: linear-gradient(135deg, #fbbf24 0%, #fef3c7 100%);
-  }
+:root {
+  --color-dark: #022C43;
+  --color-medium: #053F5E;
+  --color-light: #115173;
+  --color-accent: #FFD700;
+  --color-text: #1a1a1a;
+  --color-text-light: #4a5568;
+  --color-white: #ffffff;
+  --color-border: #e5e7eb;
+  --color-error: #dc2626;
+}
 
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Montserrat', sans-serif;
+  background: linear-gradient(135deg, var(--color-dark) 0%, var(--color-medium) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.login-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  max-width: 100%;
+}
+
+.logo-section {
+  text-align: center;
+}
+
+.logo-image {
+  height: 80px;
+  width: auto;
+  margin-bottom: 15px;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+}
+
+.logo-title {
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--color-white);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.logo-subtitle {
+  font-size: 12px;
+  color: var(--color-accent);
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.login-container {
+  background: var(--color-white);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 400px;
+  padding: 40px 32px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.login-header h1 {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--color-dark);
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+.login-header p {
+  color: var(--color-text-light);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.error {
+  display: none;
+  background-color: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: var(--color-error);
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.error.show {
+  display: block;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--color-text);
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 8px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  color: var(--color-text);
+  background: var(--color-white);
+  transition: all 0.2s ease;
+}
+
+.form-group input::placeholder {
+  color: #9ca3af;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.1);
+  background: #fafaf9;
+}
+
+.btn-login {
+  width: 100%;
+  padding: 12px 16px;
+  background-color: var(--color-accent);
+  color: var(--color-dark);
+  border: none;
+  border-radius: 8px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-top: 10px;
+}
+
+.btn-login:hover {
+  background-color: #f0c802;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(255, 215, 0, 0.3);
+}
+
+.btn-login:active {
+  transform: translateY(0);
+}
+
+.btn-login:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.login-footer {
+  text-align: center;
+  margin-top: 24px;
+  font-size: 12px;
+  color: var(--color-text-light);
+}
+
+.login-footer a {
+  color: var(--color-accent);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.login-footer a:hover {
+  color: #f0c802;
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
   .login-container {
-    background: white;
-    padding: 2rem;
-    border-radius: 0.75rem;
-    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
-    width: 100%;
-    max-width: 400px;
+    padding: 32px 24px;
   }
 
-  .login-header {
-    text-align: center;
-    margin-bottom: 2rem;
+  .logo-image {
+    height: 60px;
+  }
+
+  .logo-title {
+    font-size: 22px;
   }
 
   .login-header h1 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
+    font-size: 20px;
   }
-
-  .login-header p {
-    color: #6b7280;
-    font-size: 0.875rem;
-  }
-
-  .form-group {
-    margin-bottom: 1.5rem;
-  }
-
-  .form-group label {
-    display: block;
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-    color: #1f2937;
-    font-size: 0.875rem;
-  }
-
-  .form-group input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.375rem;
-    font-size: 1rem;
-    transition: all 0.15s ease-out;
-  }
-
-  .form-group input:focus {
-    outline: none;
-    border-color: #fbbf24;
-    box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.1);
-  }
-
-  .btn-login {
-    width: 100%;
-    padding: 0.75rem;
-    background-color: #ca8a04;
-    color: white;
-    border: none;
-    border-radius: 0.375rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.15s ease-out;
-    font-size: 1rem;
-  }
-
-  .btn-login:hover {
-    background-color: #b8860b;
-    transform: translateY(-2px);
-  }
-
-  .btn-login:active {
-    transform: translateY(0);
-  }
-
-  .login-footer {
-    text-align: center;
-    margin-top: 1.5rem;
-    font-size: 0.875rem;
-    color: #6b7280;
-  }
-
-  .login-footer a {
-    color: #ca8a04;
-    text-decoration: none;
-  }
-
-  .login-footer a:hover {
-    text-decoration: underline;
-  }
-
-  .error {
-    display: none;
-    background-color: #fee2e2;
-    border: 1px solid #fca5a5;
-    color: #991b1b;
-    padding: 0.75rem;
-    border-radius: 0.375rem;
-    margin-bottom: 1rem;
-    font-size: 0.875rem;
-  }
-
-  .error.show {
-    display: block;
-  }
+}
 </style>
 </head>
 <body>
 
-<div class="login-container">
-  <div class="login-header">
-    <h1>🐦 TABIRÁ ICES</h1>
-    <p>Panel Administrativo</p>
+<div class="login-wrapper">
+  <div class="logo-section">
+    <img src="assets/img/logo-main.svg" alt="TABIRAÍCES" class="logo-image">
+    <div class="logo-title">TABIRAÍCES</div>
+    <div class="logo-subtitle">Sistema de Cotizaciones</div>
   </div>
 
-  <div id="errorMsg" class="error"></div>
-
-  <form id="loginForm">
-    <div class="form-group">
-      <label for="usuario">Usuario</label>
-      <input
-        type="text"
-        id="usuario"
-        name="usuario"
-        placeholder="admin"
-        required
-        autocomplete="username"
-      >
+  <div class="login-container">
+    <div class="login-header">
+      <h1>Acceso Administrativo</h1>
+      <p>Ingresa tus credenciales para continuar</p>
     </div>
 
-    <div class="form-group">
-      <label for="password">Contraseña</label>
-      <input
-        type="password"
-        id="password"
-        name="password"
-        placeholder="••••••••"
-        required
-        autocomplete="current-password"
-      >
+    <div id="errorMsg" class="error"></div>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="usuario">Usuario</label>
+        <input
+          type="text"
+          id="usuario"
+          name="usuario"
+          placeholder="admin"
+          required
+          autocomplete="username"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="password">Contraseña</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="••••••••"
+          required
+          autocomplete="current-password"
+        >
+      </div>
+
+      <button type="submit" class="btn-login">Acceder</button>
+    </form>
+
+    <div class="login-footer">
+      <a href="index.html">← Volver al inicio</a>
     </div>
-
-    <button type="submit" class="btn-login">Acceder</button>
-  </form>
-
-  <div class="login-footer">
-    <a href="index.html">← Volver al inicio</a>
   </div>
 </div>
 
 <script>
-// Credenciales de demostración (en producción usar backend seguro)
 const CREDENTIALS = {
   usuario: 'admin',
   password: '12345678'
@@ -182,21 +305,19 @@ form.addEventListener('submit', (e) => {
   const password = document.getElementById('password').value;
 
   if (usuario === CREDENTIALS.usuario && password === CREDENTIALS.password) {
-    // Guardar sesión en sessionStorage
     sessionStorage.setItem('tabiraices_logged', 'true');
     sessionStorage.setItem('tabiraices_user', usuario);
     sessionStorage.setItem('tabiraices_time', new Date().getTime());
 
-    // Redirigir al panel
     window.location.href = 'app/';
   } else {
     errorMsg.textContent = 'Usuario o contraseña incorrectos';
     errorMsg.classList.add('show');
     document.getElementById('password').value = '';
+    document.getElementById('password').focus();
   }
 });
 
-// Limpiar mensaje de error al escribir
 document.getElementById('usuario').addEventListener('input', () => {
   errorMsg.classList.remove('show');
 });
