@@ -216,6 +216,7 @@ hr.dv{border:none;border-top:1.5px solid var(--div);margin:16px 0}
   </div>
   <div class="nav-r">
     <button class="tog" id="theme-btn" onclick="toggleTheme()" title="Cambiar tema">🌙</button>
+    <button class="btn bgh bsm" onclick="logout()" title="Cerrar sesión">🚪 Salir</button>
     <button class="btn bg bsm" onclick="showView('list')" style="cursor:pointer;">← Cotizaciones</button>
     <button class="btn bg bsm" onclick="newQuote()">+ Nueva Cotización</button>
   </div>
@@ -225,6 +226,8 @@ hr.dv{border:none;border-top:1.5px solid var(--div);margin:16px 0}
 
 <script>
 
+if(!sessionStorage.getItem('tabiraices_logged')||sessionStorage.getItem('tabiraices_logged')!=='true'){window.location.href='../login.html';throw new Error('No autenticado');}
+
 const BANK={cuenta:'1052 4608 508',clabe:'1376 2410 5246 0850 88',tarjeta:'4169 1614 8835 0645',bene:'Karen Estrella Ventura Ruiz',banco:'BanCoppel'};
 let quotes=[
   {id:'0021',client:'Cristian Luna',project:'Fracc. Alvia',location:'Charro Seco',payment:'Efectivo',date:'2026-05-20',status:'paid',ivaRate:0,items:[{desc:'Tabique pesado',unit:8.30,qty:1000}]},
@@ -232,6 +235,7 @@ let quotes=[
 ];
 let cq=null,view='list',dark=false,activeFilter='all';
 const LOGO_SRC=document.getElementById('logo-img')?.src||'';
+function logout(){if(confirm('¿Cerrar sesión?')){sessionStorage.removeItem('tabiraices_logged');sessionStorage.removeItem('tabiraices_user');sessionStorage.removeItem('tabiraices_time');window.location.href='../login.html';}}
 function loadQuotes(){try{const saved=localStorage.getItem('tabiraices_quotes');return saved?JSON.parse(saved):quotes;}catch(e){return quotes;}}
 function saveQuotes(){try{localStorage.setItem('tabiraices_quotes',JSON.stringify(quotes));}catch(e){}}
 quotes=loadQuotes();
