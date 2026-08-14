@@ -10,7 +10,7 @@
   "scope": "/",
   "icons": [
     {
-      "src": "favicon.svg",
+      "src": "assets/img/logo-main.svg",
       "sizes": "192x192",
       "type": "image/svg+xml",
       "purpose": "any"
