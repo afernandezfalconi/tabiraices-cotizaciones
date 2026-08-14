@@ -191,6 +191,21 @@ function bSVG(sz){return`<img src="${LOGO_SRC}" style="height:${sz}px;width:auto
 
 async function downloadPDF(qi){
   const q=quotes[qi];
+  const hash=genHash();
+  localStorage.setItem(`coti_${hash}`,JSON.stringify(q));
+  const url=window.location.origin+'/landing.html?id='+hash;
+  const win=window.open(url,'_blank');
+  if(win){
+    win.focus();
+    setTimeout(()=>{win.print();},1500);
+  }else{
+    alert('Abre esta URL en tu navegador:\\n'+url+'\\n\\nLuego usa Ctrl+P o Cmd+P para guardar como PDF');
+  }
+  return;
+}
+
+async function downloadPDF_OLD(qi){
+  const q=quotes[qi];
   const btn=document.getElementById('pdfbtn-'+qi);
   if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span> Generando...';}
   await new Promise(r=>setTimeout(r,60));
