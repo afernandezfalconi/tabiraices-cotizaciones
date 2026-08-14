@@ -327,7 +327,7 @@ async function downloadPDF_OLD(qi){
   }catch(e){alert('Error PDF: '+e.message);}
   finally{if(btn){btn.disabled=false;btn.innerHTML='Descargar PDF';}}
 }
-let module='nueva';
+var module='nueva';var view='list';var activeFilter='all';
 function showView(v){view=v;render();}
 function showModule(m){module=m;view='list';activeFilter='all';render();}
 function setFilter(f){activeFilter=f;render();}
@@ -586,30 +586,22 @@ window.renderCentroModule = function() {
   const app = document.getElementById('app');
   app.innerHTML = '<div class="page" style="padding: 40px; text-align: center; color: var(--muted);">🏢 Cargando Centro...</div>';
 };
-
-render();
 </script>
 
 <!-- Módulos de Inventario y Centro -->
 <script src="./js/inventory-module.js"></script>
 <script src="./js/centro-module.js"></script>
 <script>
-// Inicializar módulos cuando se cargan
+// Renderizar después de que los módulos estén cargados
 document.addEventListener('DOMContentLoaded', () => {
-  // Los módulos se inicializan cuando se muestran
+  render();
 });
-
-// Exponer funciones globales para los módulos
-window.initInventoryModule = () => {
-  if(typeof module !== 'undefined' && module.render) return;
-  const inventoryModule = {};
-  inventoryModule.render = () => {
-    const app = document.getElementById('app');
-    if(!app) return;
-    const { initInventoryModule, renderInventoryModule, stopInventorySync } = window;
-    if(initInventoryModule) initInventoryModule();
-  };
-};
+// Fallback si DOMContentLoaded ya se disparó
+if(document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => render());
+} else {
+  setTimeout(render, 0);
+}
 </script>
 
 </body>
