@@ -40,7 +40,7 @@ function renderInventoryModule() {
     </div>
   ` : '';
 
-  app.innerHTML = `
+  app.innerHTML += `
     <div class="page">
       <h2 style="font-size: 20px; font-weight: 900; margin-bottom: 20px; color: var(--text); text-transform: uppercase; letter-spacing: 0.5px;">📦 Inventario</h2>
 

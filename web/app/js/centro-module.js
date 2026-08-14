@@ -42,7 +42,7 @@ async function loadCentroData() {
   }
 }
 
-export function renderCentroModule() {
+function renderCentroModule() {
   const app = document.getElementById('app');
 
   const holdsPendientes = allHolds.filter((h) => h.estado === 'pendiente').length;
@@ -51,7 +51,7 @@ export function renderCentroModule() {
   const auditIngreso = auditLogs.filter((a) => a.tipo === 'ingreso').length;
   const auditVenta = auditLogs.filter((a) => a.tipo === 'venta').length;
 
-  app.innerHTML = `
+  app.innerHTML += `
     <div class="page">
       <h2 style="font-size: 20px; font-weight: 900; margin-bottom: 20px; color: var(--text); text-transform: uppercase; letter-spacing: 0.5px;">🏢 Centro de Cotizaciones</h2>
 
