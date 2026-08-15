@@ -11,7 +11,7 @@ async function loadCentroData() {
 
   try {
     // Cargar auditoría
-    const auditResponse = await fetch('/api/audit?limit=100', {
+    const auditResponse = await fetch('https://tabiraices-inventory-api.lindero-coti.workers.dev/api/audit?limit=100', {
       headers: {
         'X-User-ID': userId,
         'X-User-Role': userRole,
@@ -24,7 +24,7 @@ async function loadCentroData() {
     }
 
     // Cargar holds
-    const holdsResponse = await fetch('/api/holds', {
+    const holdsResponse = await fetch('https://tabiraices-inventory-api.lindero-coti.workers.dev/api/holds', {
       headers: {
         'X-User-ID': userId,
         'X-User-Role': userRole,

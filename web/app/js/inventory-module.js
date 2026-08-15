@@ -157,7 +157,7 @@ async function handleIngresoSubmit() {
   const userRole = sessionStorage.getItem('tabiraices_user_role');
 
   try {
-    const response = await fetch(`/api/inventory/${productoId}/ingreso`, {
+    const response = await fetch(`https://tabiraices-inventory-api.lindero-coti.workers.dev/api/inventory/${productoId}/ingreso`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -190,7 +190,7 @@ async function syncInventory() {
     const userId = sessionStorage.getItem('tabiraices_user');
     const userRole = sessionStorage.getItem('tabiraices_user_role') || 'vendedor';
 
-    const response = await fetch('/api/inventory', {
+    const response = await fetch('https://tabiraices-inventory-api.lindero-coti.workers.dev/api/inventory', {
       headers: {
         'X-User-ID': userId,
         'X-User-Role': userRole,
