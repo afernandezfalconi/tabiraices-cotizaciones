@@ -153,8 +153,8 @@ async function handleIngresoSubmit() {
     return;
   }
 
-  const userId = sessionStorage.getItem('tabiraices_user');
-  const userRole = sessionStorage.getItem('tabiraices_user_role');
+  const userId = sessionStorage.getItem('tabiraices_user') || 'admin';
+  const userRole = sessionStorage.getItem('tabiraices_user_role') || 'admin';
 
   try {
     const response = await fetch(`https://tabiraices-inventory-api.lindero-coti.workers.dev/api/inventory/${productoId}/ingreso`, {
@@ -187,8 +187,8 @@ async function startInventorySync() {
 
 async function syncInventory() {
   try {
-    const userId = sessionStorage.getItem('tabiraices_user');
-    const userRole = sessionStorage.getItem('tabiraices_user_role') || 'vendedor';
+    const userId = sessionStorage.getItem('tabiraices_user') || 'admin';
+    const userRole = sessionStorage.getItem('tabiraices_user_role') || 'admin';
 
     const response = await fetch('https://tabiraices-inventory-api.lindero-coti.workers.dev/api/inventory', {
       headers: {

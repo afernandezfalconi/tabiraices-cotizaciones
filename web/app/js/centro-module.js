@@ -6,8 +6,8 @@ function initCentroModule() {
 }
 
 async function loadCentroData() {
-  const userId = sessionStorage.getItem('tabiraices_user');
-  const userRole = sessionStorage.getItem('tabiraices_user_role');
+  const userId = sessionStorage.getItem('tabiraices_user') || 'admin';
+  const userRole = sessionStorage.getItem('tabiraices_user_role') || 'admin';
 
   try {
     // Cargar auditoría
