@@ -89,7 +89,7 @@ function renderInventoryModule() {
 }
 
 function renderInventoryTable() {
-  if (!inventoryCache?.products) return;
+  if (!inventoryCache || !Array.isArray(inventoryCache.products)) return;
 
   const tbody = document.getElementById('inventory-table-body');
   if (!tbody) return;
@@ -116,7 +116,7 @@ function renderInventoryTable() {
 }
 
 function updateKPIs() {
-  if (!inventoryCache?.totals) return;
+  if (!inventoryCache || typeof inventoryCache.totals !== 'object') return;
 
   const fmt = (n) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(n);
   const t = inventoryCache.totals;
