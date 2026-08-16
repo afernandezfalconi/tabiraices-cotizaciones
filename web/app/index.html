@@ -600,10 +600,17 @@ if(document.readyState === 'loading') {
 </script>
 
 <!-- Módulos de Inventario y Centro -->
-<script src="./js/inventory-module.js?v=2"></script>
-<script src="./js/centro-module.js?v=2"></script>
+<script>
+  // Cache buster con timestamp para forzar recarga fresca
+  const ts = Math.floor(Date.now() / 1000);
+  const s1 = document.createElement('script');
+  s1.src = `./js/inventory-module.js?t=${ts}`;
+  document.head.appendChild(s1);
 
-<!-- Módulos de Inventario y Centro -->
+  const s2 = document.createElement('script');
+  s2.src = `./js/centro-module.js?t=${ts}`;
+  document.head.appendChild(s2);
+</script>
 
 </body>
 </html>
