@@ -610,6 +610,13 @@ if(document.readyState === 'loading') {
   const s2 = document.createElement('script');
   s2.src = `./js/centro-module.js?t=${ts}`;
   document.head.appendChild(s2);
+
+  // Auto-reload si los módulos no cargaron en 10 segundos
+  setTimeout(() => {
+    if (!window.renderInventoryModule || !window.renderCentroModule) {
+      location.reload();
+    }
+  }, 10000);
 </script>
 
 </body>
