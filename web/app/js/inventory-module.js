@@ -97,7 +97,7 @@ function renderInventoryTable() {
   const fmt = (n) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(n);
 
   tbody.innerHTML = inventoryCache.products.map((p, idx) => `
-    <tr style="border-bottom: 1px solid var(--border); background: ${idx % 2 === 0 ? 'transparent' : 'var(--surface2)';}">
+    <tr style="border-bottom: 1px solid var(--border); background: ${idx % 2 === 0 ? "transparent" : "var(--surface2)"};">
       <td style="padding: 12px 16px; color: var(--text); font-weight: 600;">${p.nombre}</td>
       <td style="padding: 12px 16px; text-align: right; color: var(--text); font-weight: 600;">${fmt(p.precio_costo)}</td>
       <td style="padding: 12px 16px; text-align: right; color: var(--text); font-weight: 600;">${p.cantidad_total}</td>
