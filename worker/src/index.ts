@@ -2,6 +2,7 @@ import { handleInventoryRequest } from './routes/inventory';
 import { handleHoldsRequest } from './routes/holds';
 import { handleAuditRequest } from './routes/audit';
 import { handleSettingsRequest } from './routes/settings';
+import { InventoryService } from './services/inventory-service';
 
 export interface Env {
   INVENTORY_KV: KVNamespace;
@@ -48,7 +49,7 @@ export default {
 
       // DEBUG endpoint - test KV initialization
       if (pathname === '/api/kv-init') {
-        const inventoryService = new (await import('./services/inventory-service')).InventoryService(env.INVENTORY_KV);
+        const inventoryService = new InventoryService(env.INVENTORY_KV);
         try {
           const product = await inventoryService.getProduct('prod-001');
           return addCorsHeaders(new Response(JSON.stringify({

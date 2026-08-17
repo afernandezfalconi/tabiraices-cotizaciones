@@ -2,6 +2,7 @@ import { handleInventoryRequest } from './routes/inventory';
 import { handleHoldsRequest } from './routes/holds';
 import { handleAuditRequest } from './routes/audit';
 import { handleSettingsRequest } from './routes/settings';
+import { InventoryService } from './services/inventory-service';
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
@@ -37,7 +38,7 @@ export default {
             let response;
             // DEBUG endpoint - test KV initialization
             if (pathname === '/api/kv-init') {
-                const inventoryService = new (await import('./services/inventory-service')).InventoryService(env.INVENTORY_KV);
+                const inventoryService = new InventoryService(env.INVENTORY_KV);
                 try {
                     const product = await inventoryService.getProduct('prod-001');
                     return addCorsHeaders(new Response(JSON.stringify({
