@@ -3,6 +3,7 @@ export declare class InventoryService {
     private kv;
     constructor(kv: KVNamespace);
     getProducts(): Promise<Product[]>;
+    private initializeDefaultProducts;
     getProduct(id: string): Promise<Product | null>;
     calculateTotals(): Promise<{
         valor_total: number;

@@ -7,34 +7,9 @@ export class InventoryService {
         try {
             const index = await this.kv.get('inventory:index');
             if (!index) {
-                // Devolver datos de prueba si KV está vacío
-                const now = new Date().toISOString();
-                return [
-                    {
-                        id: 'prod-001',
-                        nombre: 'Postes lineales 10x10',
-                        precio_costo: 250,
-                        precio_venta: 350,
-                        cantidad_total: 100,
-                        cantidad_bloqueada: 0,
-                        cantidad_disponible: 100,
-                        valor_total: 25000,
-                        creado_en: now,
-                        actualizado_en: now
-                    },
-                    {
-                        id: 'prod-002',
-                        nombre: 'Postes esquineros 12x12',
-                        precio_costo: 250,
-                        precio_venta: 350,
-                        cantidad_total: 50,
-                        cantidad_bloqueada: 0,
-                        cantidad_disponible: 50,
-                        valor_total: 12500,
-                        creado_en: now,
-                        actualizado_en: now
-                    }
-                ];
+                // Inicializar KV con datos de prueba automáticamente
+                await this.initializeDefaultProducts();
+                return this.getProducts();
             }
             const ids = JSON.parse(index);
             const products = await Promise.all(ids.map((id) => this.kv.get(`inventory:${id}`)));
@@ -47,9 +22,47 @@ export class InventoryService {
             return [];
         }
     }
+    async initializeDefaultProducts() {
+        const now = new Date().toISOString();
+        const defaultProducts = [
+            {
+                id: 'prod-001',
+                nombre: 'Postes lineales 10x10',
+                precio_costo: 250,
+                precio_venta: 350,
+                cantidad_total: 100,
+                cantidad_bloqueada: 0,
+                cantidad_disponible: 100,
+                valor_total: 25000,
+                creado_en: now,
+                actualizado_en: now
+            },
+            {
+                id: 'prod-002',
+                nombre: 'Postes esquineros 12x12',
+                precio_costo: 250,
+                precio_venta: 350,
+                cantidad_total: 50,
+                cantidad_bloqueada: 0,
+                cantidad_disponible: 50,
+                valor_total: 12500,
+                creado_en: now,
+                actualizado_en: now
+            }
+        ];
+        for (const product of defaultProducts) {
+            await this.kv.put(`inventory:${product.id}`, JSON.stringify(product));
+        }
+        await this.kv.put('inventory:index', JSON.stringify(defaultProducts.map(p => p.id)));
+    }
     async getProduct(id) {
         try {
-            const data = await this.kv.get(`inventory:${id}`);
+            let data = await this.kv.get(`inventory:${id}`);
+            if (!data) {
+                // Inicializar si no existe
+                await this.initializeDefaultProducts();
+                data = await this.kv.get(`inventory:${id}`);
+            }
             return data ? JSON.parse(data) : null;
         }
         catch (error) {
