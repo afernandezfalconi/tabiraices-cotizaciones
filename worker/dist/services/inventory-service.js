@@ -25,6 +25,7 @@ export class InventoryService {
         }
     }
     async initializeDefaultProducts() {
+        console.log('initializeDefaultProducts: START');
         const now = new Date().toISOString();
         const defaultProducts = [
             {
@@ -52,10 +53,18 @@ export class InventoryService {
                 actualizado_en: now
             }
         ];
-        for (const product of defaultProducts) {
-            await this.kv.put(`inventory:${product.id}`, JSON.stringify(product));
+        try {
+            for (const product of defaultProducts) {
+                await this.kv.put(`inventory:${product.id}`, JSON.stringify(product));
+                console.log(`initializeDefaultProducts: saved ${product.id}`);
+            }
+            await this.kv.put('inventory:index', JSON.stringify(defaultProducts.map(p => p.id)));
+            console.log('initializeDefaultProducts: saved index');
         }
-        await this.kv.put('inventory:index', JSON.stringify(defaultProducts.map(p => p.id)));
+        catch (e) {
+            console.error('initializeDefaultProducts: ERROR', e);
+            throw e;
+        }
     }
     async getProduct(id) {
         try {

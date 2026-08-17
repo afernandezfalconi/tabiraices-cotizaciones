@@ -29,6 +29,7 @@ export class InventoryService {
   }
 
   private async initializeDefaultProducts(): Promise<void> {
+    console.log('initializeDefaultProducts: START');
     const now = new Date().toISOString();
     const defaultProducts = [
       {
@@ -57,11 +58,18 @@ export class InventoryService {
       }
     ];
 
-    for (const product of defaultProducts) {
-      await this.kv.put(`inventory:${product.id}`, JSON.stringify(product));
-    }
+    try {
+      for (const product of defaultProducts) {
+        await this.kv.put(`inventory:${product.id}`, JSON.stringify(product));
+        console.log(`initializeDefaultProducts: saved ${product.id}`);
+      }
 
-    await this.kv.put('inventory:index', JSON.stringify(defaultProducts.map(p => p.id)));
+      await this.kv.put('inventory:index', JSON.stringify(defaultProducts.map(p => p.id)));
+      console.log('initializeDefaultProducts: saved index');
+    } catch (e) {
+      console.error('initializeDefaultProducts: ERROR', e);
+      throw e;
+    }
   }
 
   async getProduct(id: string): Promise<Product | null> {
