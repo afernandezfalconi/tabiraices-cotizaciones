@@ -5,12 +5,14 @@ export class InventoryService {
 
   async getProducts(): Promise<Product[]> {
     try {
-      const index = await this.kv.get('inventory:index');
+      let index = await this.kv.get('inventory:index');
       if (!index) {
         // Inicializar KV con datos de prueba automáticamente
         await this.initializeDefaultProducts();
-        return this.getProducts();
+        index = await this.kv.get('inventory:index');
       }
+
+      if (!index) return [];
 
       const ids = JSON.parse(index);
       const products = await Promise.all(
