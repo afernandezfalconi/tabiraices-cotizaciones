@@ -15,4 +15,11 @@ export declare class InventoryService {
     addStock(productId: string, quantity: number): Promise<Product>;
     updateBlockedQuantity(productId: string, bloqueada: number): Promise<Product | null>;
     deductStock(productId: string, quantity: number): Promise<Product>;
+    createProduct(data: {
+        id: string;
+        nombre: string;
+        precio_costo: number;
+        precio_venta: number;
+        cantidad_inicial: number;
+    }): Promise<Product>;
 }

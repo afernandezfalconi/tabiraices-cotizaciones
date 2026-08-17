@@ -149,4 +149,39 @@ export class InventoryService {
 
     return product;
   }
+
+  async createProduct(data: {
+    id: string;
+    nombre: string;
+    precio_costo: number;
+    precio_venta: number;
+    cantidad_inicial: number;
+  }): Promise<Product> {
+    const now = new Date().toISOString();
+    const newProduct: Product = {
+      id: data.id,
+      nombre: data.nombre,
+      precio_costo: data.precio_costo,
+      precio_venta: data.precio_venta,
+      cantidad_total: data.cantidad_inicial || 0,
+      cantidad_bloqueada: 0,
+      cantidad_disponible: data.cantidad_inicial || 0,
+      valor_total: (data.cantidad_inicial || 0) * data.precio_costo,
+      creado_en: now,
+      actualizado_en: now,
+    };
+
+    // Save new product
+    await this.kv.put(`inventory:${data.id}`, JSON.stringify(newProduct));
+
+    // Update index
+    let index = await this.kv.get('inventory:index');
+    const ids = index ? JSON.parse(index) : [];
+    if (!ids.includes(data.id)) {
+      ids.push(data.id);
+      await this.kv.put('inventory:index', JSON.stringify(ids));
+    }
+
+    return newProduct;
+  }
 }

@@ -58,6 +58,39 @@ export async function handleInventoryRequest(request, kv) {
                 headers: { 'Content-Type': 'application/json' },
             });
         }
+        // POST /api/inventory/crear (Admin only - Create new product)
+        if (request.method === 'POST' &&
+            pathname === '/api/inventory/crear') {
+            const auth = await requireAdmin(request);
+            const body = (await request.json());
+            const { id, nombre, precio_costo, precio_venta, cantidad_inicial } = body;
+            if (!id || !nombre || !precio_costo || !precio_venta) {
+                throw new Error('MISSING_FIELDS');
+            }
+            await inventoryService.ensureInitialized();
+            const existingProduct = await inventoryService.getProduct(id);
+            if (existingProduct)
+                throw new Error('PRODUCT_ALREADY_EXISTS');
+            const newProduct = await inventoryService.createProduct({
+                id,
+                nombre,
+                precio_costo: parseFloat(precio_costo),
+                precio_venta: parseFloat(precio_venta),
+                cantidad_inicial: parseInt(cantidad_inicial) || 0,
+            });
+            await auditService.log({
+                tipo: 'configuracion',
+                usuario_id: auth.userID,
+                producto_id: id,
+                cantidad_antes: 0,
+                cantidad_despues: newProduct.cantidad_total,
+                detalles: { razon: 'Nuevo producto creado', nombre, precio_costo, precio_venta },
+            });
+            return new Response(JSON.stringify({ success: true, data: newProduct }), {
+                status: 201,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
         // POST /api/inventory/:id/ingreso (Admin only)
         if (request.method === 'POST' &&
             pathname.includes('/ingreso')) {
