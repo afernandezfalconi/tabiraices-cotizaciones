@@ -195,18 +195,25 @@ async function syncInventory() {
         'X-User-ID': userId,
         'X-User-Role': userRole,
       },
+      mode: 'cors'
     });
 
-    if (!response.ok) throw new Error('Sync failed');
+    if (!response.ok) {
+      const text = await response.text();
+      console.error('Sync failed:', response.status, text);
+      throw new Error('Sync failed: ' + response.status);
+    }
 
     const data = await response.json();
-    if (data.success) {
+    if (data.success && data.data) {
       inventoryCache = data.data;
       localStorage.setItem('tabiraices_inventory_cache', JSON.stringify(data.data));
       window.dispatchEvent(new CustomEvent('inventory:updated', { detail: data.data }));
+    } else {
+      console.error('Invalid response:', data);
     }
   } catch (error) {
-    console.error('Inventory sync error:', error);
+    console.error('Inventory sync error:', error.message);
   }
 }
 
