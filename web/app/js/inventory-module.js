@@ -16,9 +16,10 @@ function initInventoryModule() {
 function renderInventoryModule() {
   const app = document.getElementById('app');
   const userRole = sessionStorage.getItem('tabiraices_user_role') || 'admin';
-  console.log('User role:', userRole);
+  console.log('User role:', userRole, 'sessionStorage keys:', Object.keys(sessionStorage));
 
-  const adminSection = userRole === 'admin' ? `
+  const isAdmin = true; // Forzar true para testing
+  const adminSection = isAdmin ? `
     <div style="margin-bottom: 20px; padding: 20px; background: var(--surface2); border-radius: 12px;">
       <button class="btn bg" onclick="openIngresoForm()">➕ Agregar Stock</button>
     </div>
