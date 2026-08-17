@@ -20,8 +20,8 @@ function renderInventoryModule() {
 
   const isAdmin = true; // Forzar true para testing
   const adminSection = isAdmin ? `
-    <div style="margin-bottom: 20px; padding: 20px; background: var(--surface2); border-radius: 12px;">
-      <button class="btn bg" onclick="openIngresoForm()">➕ Agregar Stock</button>
+    <div style="margin-bottom: 20px; padding: 20px; background: #FF0000; border-radius: 12px; border: 5px solid #00FF00;">
+      <button class="btn bg" onclick="openIngresoForm()" style="font-size: 20px; padding: 15px 30px;">➕ AGREGAR STOCK - BOTÓN VISIBLE</button>
     </div>
     <div id="ingreso-form" style="display: none; margin-bottom: 20px; padding: 20px; background: var(--surface2); border-radius: 12px;">
       <h3 style="margin-bottom: 15px; text-transform: uppercase;">Agregar Stock</h3>
