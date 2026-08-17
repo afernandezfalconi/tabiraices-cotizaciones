@@ -47,6 +47,25 @@ export default {
     try {
       let response: Response;
 
+      // Ultra-simple debug: just check if KV works at all
+      if (pathname === '/test-kv') {
+        try {
+          await env.INVENTORY_KV.put('test-key', 'test-value');
+          const val = await env.INVENTORY_KV.get('test-key');
+          return addCorsHeaders(new Response(JSON.stringify({
+            success: true,
+            kv_works: val === 'test-value',
+            message: 'KV is accessible'
+          }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+        } catch (e: any) {
+          return addCorsHeaders(new Response(JSON.stringify({
+            success: false,
+            error: e.message,
+            message: 'KV error'
+          }), { status: 500, headers: { 'Content-Type': 'application/json' } }));
+        }
+      }
+
       // DEBUG endpoint - test KV initialization
       if (pathname === '/api/kv-init' || pathname.startsWith('/api/kv-init')) {
         const inventoryService = new InventoryService(env.INVENTORY_KV);
