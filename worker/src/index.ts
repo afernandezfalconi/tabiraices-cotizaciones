@@ -68,20 +68,22 @@ export default {
       }
 
       // Initialize endpoint - NO handleInventoryRequest, direct at index level
-      if (pathname === '/api/init') {
-        console.log('DIRECT INIT ENDPOINT REACHED in index.ts');
+      if (pathname === '/api/init' || pathname === '/api/init-2026-08-17-1145') {
+        console.log('DIRECT INIT ENDPOINT REACHED in index.ts', { pathname, timestamp: new Date().toISOString() });
         try {
           const inventoryService = new InventoryService(env.INVENTORY_KV);
           await inventoryService.ensureInitialized();
           return addCorsHeaders(new Response(JSON.stringify({
             success: true,
-            message: 'KV initialized from index.ts'
+            message: 'KV initialized from index.ts - LIVE VERSION',
+            timestamp: new Date().toISOString()
           }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
         } catch (e: any) {
           console.error('INIT ERROR:', e);
           return addCorsHeaders(new Response(JSON.stringify({
             success: false,
-            error: e.message
+            error: e.message,
+            timestamp: new Date().toISOString()
           }), { status: 500, headers: { 'Content-Type': 'application/json' } }));
         }
       }
