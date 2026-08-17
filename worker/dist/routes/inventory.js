@@ -29,8 +29,8 @@ export async function handleInventoryRequest(request, kv) {
                 headers: { 'Content-Type': 'application/json' },
             });
         }
-        // GET /api/inventory/debug (para diagnosticar)
-        if (request.method === 'GET' && pathname === '/api/inventory/debug') {
+        // GET /api/inventory/kv-status (para diagnosticar)
+        if (request.method === 'GET' && pathname === '/api/inventory/kv-status') {
             try {
                 const product = await inventoryService.getProduct('prod-001');
                 return new Response(JSON.stringify({
