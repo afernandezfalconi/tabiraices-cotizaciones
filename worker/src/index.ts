@@ -28,6 +28,8 @@ export default {
     const url = new URL(request.url);
     const pathname = url.pathname;
 
+    console.log('🔵 WORKER ENTRY:', { pathname, method: request.method, timestamp: new Date().toISOString() });
+
     // CORS preflight
     if (request.method === 'OPTIONS') {
       return new Response(null, {
