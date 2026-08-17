@@ -9,27 +9,36 @@ export async function handleInventoryRequest(request, kv) {
     const auditService = new AuditService(kv);
     const holdsService = new HoldsService(kv);
     try {
-        // GET /api/inventory
-        if (request.method === 'GET' && pathname === '/api/inventory') {
+        // GET /api/inventory/init - Initialize KV (no auth required for testing) - MUST BE FIRST
+        if (request.method === 'GET' && pathname === '/api/inventory/init') {
+            try {
+                await inventoryService.ensureInitialized();
+                return new Response(JSON.stringify({ success: true, message: 'KV initialized' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+            }
+            catch (e) {
+                return new Response(JSON.stringify({ success: false, error: e.message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+            }
+        }
+        // GET /api/inventory/valor/total - MUST BE BEFORE /api/inventory/:id
+        if (request.method === 'GET' && pathname === '/api/inventory/valor/total') {
             const auth = await requireAuth(request);
             const products = await inventoryService.getProducts();
             const totals = await inventoryService.calculateTotals();
-            const holds = await holdsService.getActiveHolds(auth.userRole === 'vendedor' ? auth.userID : undefined);
-            const response = {
+            return new Response(JSON.stringify({
                 success: true,
                 data: {
-                    products,
-                    totals,
-                    holds,
-                    sync_time: new Date().toISOString(),
+                    valor_total_stock: totals.valor_total,
+                    cantidad_total_items: totals.cantidad_total,
+                    cantidad_bloqueada_total: totals.cantidad_bloqueada,
+                    cantidad_disponible_total: totals.cantidad_disponible,
+                    productos: products,
                 },
-            };
-            return new Response(JSON.stringify(response), {
+            }), {
                 status: 200,
                 headers: { 'Content-Type': 'application/json' },
             });
         }
-        // GET /api/inventory/kv-status (para diagnosticar)
+        // GET /api/inventory/kv-status (para diagnosticar) - MUST BE BEFORE /api/inventory/:id
         console.log('Checking kv-status:', { pathname, method: request.method, match: pathname === '/api/inventory/kv-status' });
         if (request.method === 'GET' && pathname === '/api/inventory/kv-status') {
             console.log('KV-STATUS ENDPOINT REACHED');
@@ -47,19 +56,22 @@ export async function handleInventoryRequest(request, kv) {
                 return new Response(JSON.stringify({ success: false, error: e.message, debug: 'error in getProduct' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
             }
         }
-        // GET /api/inventory/:id
-        if (request.method === 'GET' &&
-            pathname.match(/^\/api\/inventory\/[^/]+$/) &&
-            !pathname.includes('/ingreso')) {
+        // GET /api/inventory
+        if (request.method === 'GET' && pathname === '/api/inventory') {
             const auth = await requireAuth(request);
-            const id = pathname.split('/').pop();
-            if (!id)
-                throw new Error('INVALID_PRODUCT_ID');
-            const product = await inventoryService.getProduct(id);
-            if (!product) {
-                return new Response(JSON.stringify({ success: false, error: 'NOT_FOUND' }), { status: 404, headers: { 'Content-Type': 'application/json' } });
-            }
-            return new Response(JSON.stringify({ success: true, data: product }), {
+            const products = await inventoryService.getProducts();
+            const totals = await inventoryService.calculateTotals();
+            const holds = await holdsService.getActiveHolds(auth.userRole === 'vendedor' ? auth.userID : undefined);
+            const response = {
+                success: true,
+                data: {
+                    products,
+                    totals,
+                    holds,
+                    sync_time: new Date().toISOString(),
+                },
+            };
+            return new Response(JSON.stringify(response), {
                 status: 200,
                 headers: { 'Content-Type': 'application/json' },
             });
@@ -93,31 +105,19 @@ export async function handleInventoryRequest(request, kv) {
                 headers: { 'Content-Type': 'application/json' },
             });
         }
-        // GET /api/inventory/init - Initialize KV (no auth required for testing)
-        if (request.method === 'GET' && pathname === '/api/inventory/init') {
-            try {
-                await inventoryService.ensureInitialized();
-                return new Response(JSON.stringify({ success: true, message: 'KV initialized' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
-            }
-            catch (e) {
-                return new Response(JSON.stringify({ success: false, error: e.message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
-            }
-        }
-        // GET /api/inventory/valor/total
-        if (request.method === 'GET' && pathname === '/api/inventory/valor/total') {
+        // GET /api/inventory/:id
+        if (request.method === 'GET' &&
+            pathname.match(/^\/api\/inventory\/[^/]+$/) &&
+            !pathname.includes('/ingreso')) {
             const auth = await requireAuth(request);
-            const products = await inventoryService.getProducts();
-            const totals = await inventoryService.calculateTotals();
-            return new Response(JSON.stringify({
-                success: true,
-                data: {
-                    valor_total_stock: totals.valor_total,
-                    cantidad_total_items: totals.cantidad_total,
-                    cantidad_bloqueada_total: totals.cantidad_bloqueada,
-                    cantidad_disponible_total: totals.cantidad_disponible,
-                    productos: products,
-                },
-            }), {
+            const id = pathname.split('/').pop();
+            if (!id)
+                throw new Error('INVALID_PRODUCT_ID');
+            const product = await inventoryService.getProduct(id);
+            if (!product) {
+                return new Response(JSON.stringify({ success: false, error: 'NOT_FOUND' }), { status: 404, headers: { 'Content-Type': 'application/json' } });
+            }
+            return new Response(JSON.stringify({ success: true, data: product }), {
                 status: 200,
                 headers: { 'Content-Type': 'application/json' },
             });
