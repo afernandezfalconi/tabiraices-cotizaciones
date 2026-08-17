@@ -58,10 +58,12 @@ export class InventoryService {
     async getProduct(id) {
         try {
             let data = await this.kv.get(`inventory:${id}`);
+            console.log(`getProduct(${id}): first attempt =`, data ? 'found' : 'not found');
             if (!data) {
-                // Inicializar si no existe
+                console.log(`getProduct(${id}): initializing...`);
                 await this.initializeDefaultProducts();
                 data = await this.kv.get(`inventory:${id}`);
+                console.log(`getProduct(${id}): after init =`, data ? 'found' : 'still not found');
             }
             return data ? JSON.parse(data) : null;
         }
