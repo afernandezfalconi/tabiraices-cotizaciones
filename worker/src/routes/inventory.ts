@@ -41,6 +41,28 @@ export async function handleInventoryRequest(
       });
     }
 
+    // GET /api/inventory/debug (para diagnosticar)
+    if (request.method === 'GET' && pathname === '/api/inventory/debug') {
+      try {
+        const product = await inventoryService.getProduct('prod-001');
+        return new Response(
+          JSON.stringify({
+            success: true,
+            data: { product, debug: 'getProduct executed' },
+          }),
+          {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+      } catch (e: any) {
+        return new Response(
+          JSON.stringify({ success: false, error: e.message, debug: 'error in getProduct' }),
+          { status: 500, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
     // GET /api/inventory/:id
     if (
       request.method === 'GET' &&
