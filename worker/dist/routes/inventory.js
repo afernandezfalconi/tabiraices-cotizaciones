@@ -30,7 +30,9 @@ export async function handleInventoryRequest(request, kv) {
             });
         }
         // GET /api/inventory/kv-status (para diagnosticar)
+        console.log('Checking kv-status:', { pathname, method: request.method, match: pathname === '/api/inventory/kv-status' });
         if (request.method === 'GET' && pathname === '/api/inventory/kv-status') {
+            console.log('KV-STATUS ENDPOINT REACHED');
             try {
                 const product = await inventoryService.getProduct('prod-001');
                 return new Response(JSON.stringify({
