@@ -19,15 +19,12 @@ export async function handleInventoryRequest(
     // GET /api/inventory/init - Initialize KV (no auth required for testing) - MUST BE FIRST
     if (request.method === 'GET' && pathname === '/api/inventory/init') {
       try {
-        console.log('INIT ENDPOINT REACHED - calling ensureInitialized');
         await inventoryService.ensureInitialized();
-        console.log('INIT ENDPOINT SUCCESS - KV initialized');
         return new Response(
           JSON.stringify({ success: true, message: 'KV initialized successfully' }),
           { status: 200, headers: { 'Content-Type': 'application/json' } }
         );
       } catch (e: any) {
-        console.error('INIT ENDPOINT ERROR:', e);
         return new Response(
           JSON.stringify({ success: false, error: e.message }),
           { status: 500, headers: { 'Content-Type': 'application/json' } }
@@ -59,29 +56,6 @@ export async function handleInventoryRequest(
       );
     }
 
-    // GET /api/inventory/kv-status (para diagnosticar) - MUST BE BEFORE /api/inventory/:id
-    console.log('Checking kv-status:', { pathname, method: request.method, match: pathname === '/api/inventory/kv-status' });
-    if (request.method === 'GET' && pathname === '/api/inventory/kv-status') {
-      console.log('KV-STATUS ENDPOINT REACHED');
-      try {
-        const product = await inventoryService.getProduct('prod-001');
-        return new Response(
-          JSON.stringify({
-            success: true,
-            data: { product, debug: 'getProduct executed' },
-          }),
-          {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-          }
-        );
-      } catch (e: any) {
-        return new Response(
-          JSON.stringify({ success: false, error: e.message, debug: 'error in getProduct' }),
-          { status: 500, headers: { 'Content-Type': 'application/json' } }
-        );
-      }
-    }
 
     // GET /api/inventory
     if (request.method === 'GET' && pathname === '/api/inventory') {

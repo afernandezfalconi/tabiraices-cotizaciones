@@ -222,20 +222,7 @@ hr.dv{border:none;border-top:1.5px solid var(--div);margin:16px 0}
   </div>
 </nav>
 
-<div class="page" id="app">
-  <!-- Botón para agregar stock (admin) -->
-  <div id="admin-actions" style="display: none; margin-bottom: 20px; padding: 20px; background: var(--surface2); border-radius: 12px;">
-    <button class="btn bg" onclick="openIngresoForm()">➕ Agregar Stock</button>
-  </div>
-</div>
-
-<script>
-// Mostrar botón de admin
-if (sessionStorage.getItem('tabiraices_user_role') === 'admin' || sessionStorage.getItem('tabiraices_user') === 'admin') {
-  const adminDiv = document.getElementById('admin-actions');
-  if (adminDiv) adminDiv.style.display = 'block';
-}
-</script>
+<div class="page" id="app"></div>
 
 <script>
 // Initialize KV on page load
@@ -253,11 +240,6 @@ window.initKV = async function() {
 </script>
 
 <script>
-
-// Auto-login para testing - siempre establecer admin
-sessionStorage.setItem('tabiraices_logged','true');
-sessionStorage.setItem('tabiraices_user','admin');
-sessionStorage.setItem('tabiraices_user_role','admin');
 
 const BANK={cuenta:'1052 4608 508',clabe:'1376 2410 5246 0850 88',tarjeta:'4169 1614 8835 0645',bene:'Karen Estrella Ventura Ruiz',banco:'BanCoppel'};
 let quotes=[

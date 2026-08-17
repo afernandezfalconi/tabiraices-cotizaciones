@@ -28,8 +28,6 @@ export default {
     const url = new URL(request.url);
     const pathname = url.pathname;
 
-    console.log('🔵 WORKER ENTRY:', { pathname, method: request.method, timestamp: new Date().toISOString() });
-
     // CORS preflight
     if (request.method === 'OPTIONS') {
       return new Response(null, {
@@ -49,64 +47,6 @@ export default {
     try {
       let response: Response;
 
-      // Ultra-simple debug: just check if KV works at all
-      if (pathname === '/test-kv') {
-        try {
-          await env.INVENTORY_KV.put('test-key', 'test-value');
-          const val = await env.INVENTORY_KV.get('test-key');
-          return addCorsHeaders(new Response(JSON.stringify({
-            success: true,
-            kv_works: val === 'test-value',
-            message: 'KV is accessible',
-            timestamp: new Date().toISOString()
-          }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
-        } catch (e: any) {
-          return addCorsHeaders(new Response(JSON.stringify({
-            success: false,
-            error: e.message,
-            message: 'KV error'
-          }), { status: 500, headers: { 'Content-Type': 'application/json' } }));
-        }
-      }
-
-      // Initialize endpoint - NO handleInventoryRequest, direct at index level
-      if (pathname === '/api/init' || pathname === '/api/init-2026-08-17-1145') {
-        console.log('DIRECT INIT ENDPOINT REACHED in index.ts', { pathname, timestamp: new Date().toISOString() });
-        try {
-          const inventoryService = new InventoryService(env.INVENTORY_KV);
-          await inventoryService.ensureInitialized();
-          return addCorsHeaders(new Response(JSON.stringify({
-            success: true,
-            message: 'KV initialized from index.ts - LIVE VERSION',
-            timestamp: new Date().toISOString()
-          }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
-        } catch (e: any) {
-          console.error('INIT ERROR:', e);
-          return addCorsHeaders(new Response(JSON.stringify({
-            success: false,
-            error: e.message,
-            timestamp: new Date().toISOString()
-          }), { status: 500, headers: { 'Content-Type': 'application/json' } }));
-        }
-      }
-
-      // DEBUG endpoint - test KV initialization
-      if (pathname === '/api/kv-init' || pathname.startsWith('/api/kv-init')) {
-        const inventoryService = new InventoryService(env.INVENTORY_KV);
-        try {
-          const product = await inventoryService.getProduct('prod-001');
-          return addCorsHeaders(new Response(JSON.stringify({
-            success: true,
-            data: product,
-            message: 'Product found or initialized'
-          }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
-        } catch (e: any) {
-          return addCorsHeaders(new Response(JSON.stringify({
-            success: false,
-            error: e.message
-          }), { status: 500, headers: { 'Content-Type': 'application/json' } }));
-        }
-      }
 
       if (pathname.startsWith('/api/inventory')) {
         response = await handleInventoryRequest(request, env.INVENTORY_KV);

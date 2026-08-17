@@ -25,7 +25,6 @@ export class InventoryService {
         }
     }
     async initializeDefaultProducts() {
-        console.log('initializeDefaultProducts: START');
         const now = new Date().toISOString();
         const defaultProducts = [
             {
@@ -53,18 +52,10 @@ export class InventoryService {
                 actualizado_en: now
             }
         ];
-        try {
-            for (const product of defaultProducts) {
-                await this.kv.put(`inventory:${product.id}`, JSON.stringify(product));
-                console.log(`initializeDefaultProducts: saved ${product.id}`);
-            }
-            await this.kv.put('inventory:index', JSON.stringify(defaultProducts.map(p => p.id)));
-            console.log('initializeDefaultProducts: saved index');
+        for (const product of defaultProducts) {
+            await this.kv.put(`inventory:${product.id}`, JSON.stringify(product));
         }
-        catch (e) {
-            console.error('initializeDefaultProducts: ERROR', e);
-            throw e;
-        }
+        await this.kv.put('inventory:index', JSON.stringify(defaultProducts.map(p => p.id)));
     }
     async ensureInitialized() {
         const index = await this.kv.get('inventory:index');
@@ -75,17 +66,13 @@ export class InventoryService {
     async getProduct(id) {
         try {
             let data = await this.kv.get(`inventory:${id}`);
-            console.log(`getProduct(${id}): first attempt =`, data ? 'found' : 'not found');
             if (!data) {
-                console.log(`getProduct(${id}): initializing...`);
                 await this.initializeDefaultProducts();
                 data = await this.kv.get(`inventory:${id}`);
-                console.log(`getProduct(${id}): after init =`, data ? 'found' : 'still not found');
             }
             return data ? JSON.parse(data) : null;
         }
         catch (error) {
-            console.error(`Error getting product ${id}:`, error);
             return null;
         }
     }
