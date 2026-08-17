@@ -6,8 +6,36 @@ export class InventoryService {
     async getProducts() {
         try {
             const index = await this.kv.get('inventory:index');
-            if (!index)
-                return [];
+            if (!index) {
+                // Devolver datos de prueba si KV está vacío
+                const now = new Date().toISOString();
+                return [
+                    {
+                        id: 'prod-001',
+                        nombre: 'Postes lineales 10x10',
+                        precio_costo: 250,
+                        precio_venta: 350,
+                        cantidad_total: 100,
+                        cantidad_bloqueada: 0,
+                        cantidad_disponible: 100,
+                        valor_total: 25000,
+                        creado_en: now,
+                        actualizado_en: now
+                    },
+                    {
+                        id: 'prod-002',
+                        nombre: 'Postes esquineros 12x12',
+                        precio_costo: 250,
+                        precio_venta: 350,
+                        cantidad_total: 50,
+                        cantidad_bloqueada: 0,
+                        cantidad_disponible: 50,
+                        valor_total: 12500,
+                        creado_en: now,
+                        actualizado_en: now
+                    }
+                ];
+            }
             const ids = JSON.parse(index);
             const products = await Promise.all(ids.map((id) => this.kv.get(`inventory:${id}`)));
             return products
