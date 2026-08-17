@@ -93,6 +93,12 @@ export async function handleInventoryRequest(request, kv) {
                 headers: { 'Content-Type': 'application/json' },
             });
         }
+        // GET /api/inventory/init - Initialize KV
+        if (request.method === 'GET' && pathname === '/api/inventory/init') {
+            const auth = await requireAuth(request);
+            await inventoryService.ensureInitialized();
+            return new Response(JSON.stringify({ success: true, message: 'KV initialized' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+        }
         // GET /api/inventory/valor/total
         if (request.method === 'GET' && pathname === '/api/inventory/valor/total') {
             const auth = await requireAuth(request);
