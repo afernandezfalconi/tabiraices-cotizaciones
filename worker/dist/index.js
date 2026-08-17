@@ -2,19 +2,27 @@ import { handleInventoryRequest } from './routes/inventory';
 import { handleHoldsRequest } from './routes/holds';
 import { handleAuditRequest } from './routes/audit';
 import { handleSettingsRequest } from './routes/settings';
+const CORS_HEADERS = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, X-User-ID, X-User-Role',
+    'Access-Control-Max-Age': '86400',
+};
+function addCorsHeaders(response) {
+    const newResponse = new Response(response.body, response);
+    Object.entries(CORS_HEADERS).forEach(([key, value]) => {
+        newResponse.headers.set(key, value);
+    });
+    return newResponse;
+}
 export default {
     async fetch(request, env) {
         const url = new URL(request.url);
         const pathname = url.pathname;
-        // CORS headers
+        // CORS preflight
         if (request.method === 'OPTIONS') {
             return new Response(null, {
-                headers: {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
-                    'Access-Control-Allow-Headers': 'Content-Type, X-User-ID, X-User-Role',
-                    'Access-Control-Max-Age': '86400',
-                },
+                headers: CORS_HEADERS,
             });
         }
         // Load settings for all routes
@@ -26,35 +34,40 @@ export default {
         const currentSettings = settings ? JSON.parse(settings) : defaultSettings;
         // Router
         try {
+            let response;
             if (pathname.startsWith('/api/inventory')) {
-                return await handleInventoryRequest(request, env.INVENTORY_KV);
+                response = await handleInventoryRequest(request, env.INVENTORY_KV);
             }
-            if (pathname.startsWith('/api/holds')) {
-                return await handleHoldsRequest(request, env.INVENTORY_KV, currentSettings);
+            else if (pathname.startsWith('/api/holds')) {
+                response = await handleHoldsRequest(request, env.INVENTORY_KV, currentSettings);
             }
-            if (pathname.startsWith('/api/audit')) {
-                return await handleAuditRequest(request, env.INVENTORY_KV);
+            else if (pathname.startsWith('/api/audit')) {
+                response = await handleAuditRequest(request, env.INVENTORY_KV);
             }
-            if (pathname.startsWith('/api/settings')) {
-                return await handleSettingsRequest(request, env.INVENTORY_KV);
+            else if (pathname.startsWith('/api/settings')) {
+                response = await handleSettingsRequest(request, env.INVENTORY_KV);
             }
-            // Health check
-            if (pathname === '/health') {
-                return new Response(JSON.stringify({ status: 'ok' }), {
+            else if (pathname === '/health') {
+                // Health check
+                response = new Response(JSON.stringify({ status: 'ok' }), {
                     headers: { 'Content-Type': 'application/json' },
                 });
             }
-            return new Response(JSON.stringify({ error: 'Not found' }), {
-                status: 404,
-                headers: { 'Content-Type': 'application/json' },
-            });
+            else {
+                response = new Response(JSON.stringify({ error: 'Not found' }), {
+                    status: 404,
+                    headers: { 'Content-Type': 'application/json' },
+                });
+            }
+            return addCorsHeaders(response);
         }
         catch (error) {
             console.error('Worker error:', error);
-            return new Response(JSON.stringify({ success: false, error: 'Internal server error' }), {
+            const errorResponse = new Response(JSON.stringify({ success: false, error: 'Internal server error' }), {
                 status: 500,
                 headers: { 'Content-Type': 'application/json' },
             });
+            return addCorsHeaders(errorResponse);
         }
     },
 };
