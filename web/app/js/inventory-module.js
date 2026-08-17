@@ -15,7 +15,8 @@ function initInventoryModule() {
 
 function renderInventoryModule() {
   const app = document.getElementById('app');
-  const userRole = sessionStorage.getItem('tabiraices_user_role') || 'vendedor';
+  const userRole = sessionStorage.getItem('tabiraices_user_role') || 'admin';
+  console.log('User role:', userRole);
 
   const adminSection = userRole === 'admin' ? `
     <div style="margin-bottom: 20px; padding: 20px; background: var(--surface2); border-radius: 12px;">
