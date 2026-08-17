@@ -19,12 +19,15 @@ export async function handleInventoryRequest(
     // GET /api/inventory/init - Initialize KV (no auth required for testing) - MUST BE FIRST
     if (request.method === 'GET' && pathname === '/api/inventory/init') {
       try {
+        console.log('INIT ENDPOINT REACHED - calling ensureInitialized');
         await inventoryService.ensureInitialized();
+        console.log('INIT ENDPOINT SUCCESS - KV initialized');
         return new Response(
-          JSON.stringify({ success: true, message: 'KV initialized' }),
+          JSON.stringify({ success: true, message: 'KV initialized successfully' }),
           { status: 200, headers: { 'Content-Type': 'application/json' } }
         );
       } catch (e: any) {
+        console.error('INIT ENDPOINT ERROR:', e);
         return new Response(
           JSON.stringify({ success: false, error: e.message }),
           { status: 500, headers: { 'Content-Type': 'application/json' } }

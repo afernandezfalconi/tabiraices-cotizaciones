@@ -12,10 +12,13 @@ export async function handleInventoryRequest(request, kv) {
         // GET /api/inventory/init - Initialize KV (no auth required for testing) - MUST BE FIRST
         if (request.method === 'GET' && pathname === '/api/inventory/init') {
             try {
+                console.log('INIT ENDPOINT REACHED - calling ensureInitialized');
                 await inventoryService.ensureInitialized();
-                return new Response(JSON.stringify({ success: true, message: 'KV initialized' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+                console.log('INIT ENDPOINT SUCCESS - KV initialized');
+                return new Response(JSON.stringify({ success: true, message: 'KV initialized successfully' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
             }
             catch (e) {
+                console.error('INIT ENDPOINT ERROR:', e);
                 return new Response(JSON.stringify({ success: false, error: e.message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
             }
         }
