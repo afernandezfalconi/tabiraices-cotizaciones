@@ -35,6 +35,24 @@ export default {
         // Router
         try {
             let response;
+            // DEBUG endpoint - test KV initialization
+            if (pathname === '/api/kv-init') {
+                const inventoryService = new (await import('./services/inventory-service')).InventoryService(env.INVENTORY_KV);
+                try {
+                    const product = await inventoryService.getProduct('prod-001');
+                    return addCorsHeaders(new Response(JSON.stringify({
+                        success: true,
+                        data: product,
+                        message: 'Product found or initialized'
+                    }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+                }
+                catch (e) {
+                    return addCorsHeaders(new Response(JSON.stringify({
+                        success: false,
+                        error: e.message
+                    }), { status: 500, headers: { 'Content-Type': 'application/json' } }));
+                }
+            }
             if (pathname.startsWith('/api/inventory')) {
                 response = await handleInventoryRequest(request, env.INVENTORY_KV);
             }
