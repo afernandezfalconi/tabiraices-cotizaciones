@@ -44,7 +44,8 @@ export default {
                     return addCorsHeaders(new Response(JSON.stringify({
                         success: true,
                         kv_works: val === 'test-value',
-                        message: 'KV is accessible'
+                        message: 'KV is accessible',
+                        timestamp: new Date().toISOString()
                     }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
                 }
                 catch (e) {
@@ -52,6 +53,25 @@ export default {
                         success: false,
                         error: e.message,
                         message: 'KV error'
+                    }), { status: 500, headers: { 'Content-Type': 'application/json' } }));
+                }
+            }
+            // Initialize endpoint - NO handleInventoryRequest, direct at index level
+            if (pathname === '/api/init') {
+                console.log('DIRECT INIT ENDPOINT REACHED in index.ts');
+                try {
+                    const inventoryService = new InventoryService(env.INVENTORY_KV);
+                    await inventoryService.ensureInitialized();
+                    return addCorsHeaders(new Response(JSON.stringify({
+                        success: true,
+                        message: 'KV initialized from index.ts'
+                    }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+                }
+                catch (e) {
+                    console.error('INIT ERROR:', e);
+                    return addCorsHeaders(new Response(JSON.stringify({
+                        success: false,
+                        error: e.message
                     }), { status: 500, headers: { 'Content-Type': 'application/json' } }));
                 }
             }
