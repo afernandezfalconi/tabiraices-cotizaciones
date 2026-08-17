@@ -14,6 +14,7 @@ function initInventoryModule() {
 }
 
 function renderInventoryModule() {
+  alert('renderInventoryModule se ejecutó - DEBUG');
   const app = document.getElementById('app');
   const userRole = sessionStorage.getItem('tabiraices_user_role') || 'admin';
   console.log('User role:', userRole, 'sessionStorage keys:', Object.keys(sessionStorage));
