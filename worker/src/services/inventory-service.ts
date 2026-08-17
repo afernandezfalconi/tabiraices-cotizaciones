@@ -64,7 +64,12 @@ export class InventoryService {
 
   async getProduct(id: string): Promise<Product | null> {
     try {
-      const data = await this.kv.get(`inventory:${id}`);
+      let data = await this.kv.get(`inventory:${id}`);
+      if (!data) {
+        // Inicializar si no existe
+        await this.initializeDefaultProducts();
+        data = await this.kv.get(`inventory:${id}`);
+      }
       return data ? JSON.parse(data) : null;
     } catch (error) {
       console.error(`Error getting product ${id}:`, error);
