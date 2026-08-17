@@ -37,7 +37,7 @@ export default {
         try {
             let response;
             // DEBUG endpoint - test KV initialization
-            if (pathname === '/api/kv-init') {
+            if (pathname === '/api/kv-init' || pathname.startsWith('/api/kv-init')) {
                 const inventoryService = new InventoryService(env.INVENTORY_KV);
                 try {
                     const product = await inventoryService.getProduct('prod-001');
