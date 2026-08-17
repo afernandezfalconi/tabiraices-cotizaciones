@@ -101,6 +101,9 @@ export async function handleInventoryRequest(
 
       if (!cantidad || cantidad <= 0) throw new Error('INVALID_QUANTITY');
 
+      // Ensure KV is initialized before attempting to get product
+      await inventoryService.ensureInitialized();
+
       const product = await inventoryService.getProduct(id);
       if (!product) throw new Error('PRODUCT_NOT_FOUND');
 

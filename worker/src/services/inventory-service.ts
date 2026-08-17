@@ -72,6 +72,13 @@ export class InventoryService {
     }
   }
 
+  async ensureInitialized(): Promise<void> {
+    const index = await this.kv.get('inventory:index');
+    if (!index) {
+      await this.initializeDefaultProducts();
+    }
+  }
+
   async getProduct(id: string): Promise<Product | null> {
     try {
       let data = await this.kv.get(`inventory:${id}`);
