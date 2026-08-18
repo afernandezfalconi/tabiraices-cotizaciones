@@ -17,13 +17,12 @@ function renderInventoryModule() {
   const app = document.getElementById('app');
   if (!app) { console.error('app element not found'); return; }
 
-  const userRole = sessionStorage.getItem('tabiraices_user_role') || 'admin';
-  const isAdmin = true; // Forzar true para testing
+  const userRole = sessionStorage.getItem('tabiraices_user_role') || 'vendedor';
+  const isAdmin = userRole === 'admin';
 
   const adminSection = isAdmin ? `
-    <div style="margin-bottom: 20px; padding: 30px; background: #FF0000; border-radius: 12px; border: 10px solid #00FF00; text-align: center;">
-      <div style="font-size: 48px; font-weight: 900; color: white; margin-bottom: 20px;">🔴 BOTÓN ROJO 🔴</div>
-      <button class="btn bg" onclick="openIngresoForm()" style="font-size: 20px; padding: 15px 30px; background: white; color: red; font-weight: 900;">➕ AGREGAR STOCK</button>
+    <div style="margin-bottom: 20px;">
+      <button class="btn bg" onclick="openIngresoForm()">➕ Agregar Stock</button>
     </div>
     <div id="ingreso-form" style="display: none; margin-bottom: 20px; padding: 20px; background: var(--surface2); border-radius: 12px;">
       <h3 style="margin-bottom: 15px; text-transform: uppercase;">Agregar Stock</h3>
