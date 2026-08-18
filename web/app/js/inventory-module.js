@@ -1,3 +1,7 @@
+/** Sin permiso ver_costos el servidor NI SIQUIERA manda precio_costo ni
+ *  valor_total, asi que estas columnas se omiten para no pintar undefined. */
+const verCostos = () => !!(window.puede && puede('ver_costos'));
+
 let inventoryCache = null;
 let inventorySyncInterval = null;
 
@@ -17,8 +21,7 @@ function renderInventoryModule() {
   const app = document.getElementById('app');
   if (!app) { console.error('app element not found'); return; }
 
-  const userRole = sessionStorage.getItem('tabiraices_user_role') || 'vendedor';
-  const isAdmin = userRole === 'admin';
+  const isAdmin = window.puede && puede('ingreso');
 
   const adminSection = isAdmin ? `
     <div style="margin-bottom: 20px;">
@@ -48,10 +51,11 @@ function renderInventoryModule() {
       <h2 style="font-size: 20px; font-weight: 900; margin-bottom: 20px; color: var(--text); text-transform: uppercase; letter-spacing: 0.5px;">📦 Inventario</h2>
 
       <div class="stats">
+        ${verCostos() ? `
         <div class="sc">
           <div class="sl">Valor Total Stock</div>
           <div class="sv gold" id="kpi-valor-total">$0.00</div>
-        </div>
+        </div>` : ''}
         <div class="sc">
           <div class="sl">Cantidad Total</div>
           <div class="sv" id="kpi-cantidad-total">0</div>
@@ -73,16 +77,16 @@ function renderInventoryModule() {
           <thead>
             <tr style="background: var(--navy); color: #fff;">
               <th style="padding: 12px 16px; text-align: left; font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Producto</th>
-              <th style="padding: 12px 16px; text-align: right; font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">P. Costo</th>
+              ${verCostos() ? '<th style="padding: 12px 16px; text-align: right; font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">P. Costo</th>' : '<th style="padding: 12px 16px; text-align: right; font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">P. Venta</th>'}
               <th style="padding: 12px 16px; text-align: right; font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Total</th>
               <th style="padding: 12px 16px; text-align: right; font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gold);">Bloq.</th>
               <th style="padding: 12px 16px; text-align: right; font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--success);">Disponible</th>
-              <th style="padding: 12px 16px; text-align: right; font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Valor Total</th>
+              ${verCostos() ? '<th style="padding: 12px 16px; text-align: right; font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Valor Total</th>' : ''}
             </tr>
           </thead>
           <tbody id="inventory-table-body">
             <tr style="background: var(--surface2); height: 100px;">
-              <td colspan="6" style="text-align: center; color: var(--muted); padding: 40px;">Cargando inventario...</td>
+              <td colspan="${verCostos() ? 6 : 5}" style="text-align: center; color: var(--muted); padding: 40px;">Cargando inventario...</td>
             </tr>
           </tbody>
         </table>
@@ -105,11 +109,11 @@ function renderInventoryTable() {
   tbody.innerHTML = inventoryCache.products.map((p, idx) => `
     <tr style="border-bottom: 1px solid var(--border); background: ${idx % 2 === 0 ? "transparent" : "var(--surface2)"};">
       <td style="padding: 12px 16px; color: var(--text); font-weight: 600;">${p.nombre}</td>
-      <td style="padding: 12px 16px; text-align: right; color: var(--text); font-weight: 600;">${fmt(p.precio_costo)}</td>
+      <td style="padding: 12px 16px; text-align: right; color: var(--text); font-weight: 600;">${fmt(verCostos() ? p.precio_costo : p.precio_venta)}</td>
       <td style="padding: 12px 16px; text-align: right; color: var(--text); font-weight: 600;">${p.cantidad_total}</td>
       <td style="padding: 12px 16px; text-align: right; color: var(--warning); font-weight: 700;">${p.cantidad_bloqueada}</td>
       <td style="padding: 12px 16px; text-align: right; color: var(--success); font-weight: 700;">${p.cantidad_disponible}</td>
-      <td style="padding: 12px 16px; text-align: right; color: var(--gold); font-weight: 900;">${fmt(p.valor_total)}</td>
+      ${verCostos() ? `<td style="padding: 12px 16px; text-align: right; color: var(--gold); font-weight: 900;">${fmt(p.valor_total)}</td>` : ''}
     </tr>
   `).join('');
 
@@ -132,7 +136,7 @@ function updateKPIs() {
   const bloqEl = document.getElementById('kpi-cantidad-bloqueada');
   const dispEl = document.getElementById('kpi-cantidad-disponible');
 
-  if (valorEl) valorEl.textContent = fmt(t.valor_total || 0);
+  if (valorEl && t.valor_total !== undefined) valorEl.textContent = fmt(t.valor_total);
   if (cantEl) cantEl.textContent = t.cantidad_total || 0;
   if (bloqEl) bloqEl.textContent = t.cantidad_bloqueada || 0;
   if (dispEl) dispEl.textContent = t.cantidad_disponible || 0;
@@ -159,30 +163,16 @@ async function handleIngresoSubmit() {
     return;
   }
 
-  const userId = sessionStorage.getItem('tabiraices_user') || 'admin';
-  const userRole = sessionStorage.getItem('tabiraices_user_role') || 'admin';
-
   try {
-    const response = await fetch(`https://tabiraices-inventory-api.lindero-coti.workers.dev/api/inventory/${productoId}/ingreso`, {
+    await api(`/api/inventory/${productoId}/ingreso`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-User-ID': userId,
-        'X-User-Role': userRole,
-      },
       body: JSON.stringify({ cantidad, notas: '' }),
     });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Error al agregar stock');
-    }
-
     alert('✅ Stock agregado correctamente');
     closeIngresoForm();
     await syncInventory();
   } catch (error) {
-    alert('❌ ' + error.message);
+    if (error.message !== 'SESION_EXPIRADA') alert('❌ ' + error.message);
   }
 }
 
@@ -193,24 +183,7 @@ async function startInventorySync() {
 
 async function syncInventory() {
   try {
-    const userId = sessionStorage.getItem('tabiraices_user') || 'admin';
-    const userRole = sessionStorage.getItem('tabiraices_user_role') || 'admin';
-
-    const response = await fetch('https://tabiraices-inventory-api.lindero-coti.workers.dev/api/inventory', {
-      headers: {
-        'X-User-ID': userId,
-        'X-User-Role': userRole,
-      },
-      mode: 'cors'
-    });
-
-    if (!response.ok) {
-      const text = await response.text();
-      console.error('Sync failed:', response.status, text);
-      throw new Error('Sync failed: ' + response.status);
-    }
-
-    const data = await response.json();
+    const data = { success: true, data: await api('/api/inventory') };
     if (data.success && data.data) {
       inventoryCache = data.data;
       localStorage.setItem('tabiraices_inventory_cache', JSON.stringify(data.data));

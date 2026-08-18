@@ -1,6 +1,6 @@
-# TABIRÁ ICES
+# TABIRAÍCES
 
-Sitio web profesional para **TABIRÁ ICES** — empresa de venta de materiales de construcción e inmobiliaria en Puerto Escondido, Oaxaca.
+Sitio web profesional para **TABIRAÍCES** — empresa de venta de materiales de construcción e inmobiliaria en Puerto Escondido, Oaxaca.
 
 Incluye sitio público + panel administrativo interno con cotizador protegido.
 
@@ -51,7 +51,7 @@ Incluye sitio público + panel administrativo interno con cotizador protegido.
 
 ### Paso 1: Conectar GitHub
 
-1. Subir este repo a GitHub: `afernandezfalconi/TABIRAICES`
+1. Subir este repo a GitHub: `afernandezfalconi/TABIRAÍCES`
 2. Ir a Cloudflare Pages
 3. "Create a project" → Conectar GitHub
 4. Seleccionar repositorio
@@ -73,7 +73,7 @@ Cloudflare Pages publicará automáticamente.
 ## 📝 Estructura del Proyecto
 
 ```
-TABIRAICES/
+TABIRAÍCES/
 ├── index.html           # Inicio
 ├── productos.html       # Catálogo
 ├── contacto.html        # Contacto
@@ -113,4 +113,4 @@ TABIRAICES/
 
 ## 📄 Licencia
 
-Uso exclusivo de TABIRÁ ICES
+Uso exclusivo de TABIRAÍCES

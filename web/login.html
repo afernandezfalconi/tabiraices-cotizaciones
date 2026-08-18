@@ -290,31 +290,62 @@ body {
 </div>
 
 <script>
-const CREDENTIALS = {
-  usuario: 'admin',
-  password: '12345678'
-};
+/**
+ * Aquí NO hay credenciales.
+ *
+ * Este archivo tenía usuario y contraseña en duro, legibles con Ctrl+U por
+ * cualquiera que abriera la página. Ahora la verificación ocurre en el Worker
+ * y lo único que se guarda es el token de sesión que devuelve.
+ */
+const API = "https://tabiraices-inventory-api.lindero-coti.workers.dev";
 
 const form = document.getElementById('loginForm');
 const errorMsg = document.getElementById('errorMsg');
+const btn = form.querySelector('button[type="submit"]');
 
-form.addEventListener('submit', (e) => {
+const mostrarError = (texto) => {
+  errorMsg.textContent = texto;
+  errorMsg.classList.add('show');
+  document.getElementById('password').value = '';
+  document.getElementById('password').focus();
+};
+
+form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const usuario = document.getElementById('usuario').value;
+  const usuario = document.getElementById('usuario').value.trim();
   const password = document.getElementById('password').value;
+  if (!usuario || !password) return;
 
-  if (usuario === CREDENTIALS.usuario && password === CREDENTIALS.password) {
-    sessionStorage.setItem('tabiraices_logged', 'true');
-    sessionStorage.setItem('tabiraices_user', usuario);
-    sessionStorage.setItem('tabiraices_time', new Date().getTime());
+  const textoOriginal = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Entrando...';
+
+  try {
+    const r = await fetch(`${API}/api/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ usuario, password }),
+    });
+    const json = await r.json();
+
+    if (!r.ok || !json.success) {
+      mostrarError(json.error || 'Usuario o contraseña incorrectos');
+      return;
+    }
+
+    sessionStorage.setItem('tabiraices_token', json.data.token);
+    sessionStorage.setItem('tabiraices_user', json.data.usuario);
+    sessionStorage.setItem('tabiraices_nombre', json.data.nombre);
+    sessionStorage.setItem('tabiraices_rol', json.data.rol);
+    sessionStorage.setItem('tabiraices_permisos', JSON.stringify(json.data.permisos));
 
     window.location.href = 'app/';
-  } else {
-    errorMsg.textContent = 'Usuario o contraseña incorrectos';
-    errorMsg.classList.add('show');
-    document.getElementById('password').value = '';
-    document.getElementById('password').focus();
+  } catch (err) {
+    mostrarError('No se pudo conectar. Revisa tu conexión e inténtalo de nuevo.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = textoOriginal;
   }
 });
 

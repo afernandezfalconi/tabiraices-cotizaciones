@@ -125,7 +125,15 @@ export class UsersService {
 
   /* -------------------------------------------------------------- usuarios */
 
-  /** Lista desde la metadata de las claves: evita N lecturas de KV. */
+  /**
+   * Lista desde la metadata de las claves: evita N lecturas de KV.
+   *
+   * ⚠️ `kv.list()` es eventualmente consistente, así que un usuario recién
+   * creado puede tardar unos segundos en aparecer aquí. NO se intentó arreglar
+   * con un índice en una sola clave: eso introduce una carrera
+   * lectura-modificación-escritura que llegó a BORRAR usuarios de la lista.
+   * La frescura se resuelve en el cliente, que ya sabe a quién acaba de crear.
+   */
   async listar(): Promise<UsuarioPublico[]> {
     const lista = await this.kv.list<UsuarioPublico>({ prefix: 'user:', limit: 200 });
     return lista.keys.map((k) => k.metadata).filter((m): m is UsuarioPublico => !!m);

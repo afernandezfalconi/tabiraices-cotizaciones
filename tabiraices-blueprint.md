@@ -1,4 +1,4 @@
-# TABIRÁ ICES — Blueprint de Endurecimiento y Gestión de Usuarios
+# TABIRAÍCES — Blueprint de Endurecimiento y Gestión de Usuarios
 
 > Generado por The Architect — 2026-08-17
 > Arquetipo: Internal Tool / Dashboard (brownfield)
@@ -10,7 +10,7 @@
 
 ### Qué es esto
 
-TABIRÁ ICES es un cotizador web con inventario para una bloquera/inmobiliaria en Ventanilla, Colotepec, Oaxaca. Backend en Cloudflare Worker + KV, frontend HTML vanilla en Cloudflare Pages.
+TABIRAÍCES es un cotizador web con inventario para una bloquera/inmobiliaria en Ventanilla, Colotepec, Oaxaca. Backend en Cloudflare Worker + KV, frontend HTML vanilla en Cloudflare Pages.
 
 **Este blueprint NO es para construir el sistema de cero.** El sistema existe y funciona. Es para cerrar el agujero de seguridad que lo deja abierto al público y añadir gestión de usuarios dentro del módulo Centro.
 
@@ -365,7 +365,7 @@ Soluciones Puerto tiene 69/69 + 29/29 pruebas E2E; conviene portar ese enfoque c
 ## 12. CLAUDE.md para el proyecto
 
 ```markdown
-# TABIRÁ ICES
+# TABIRAÍCES
 
 Cotizador web + inventario para bloquera/inmobiliaria en Ventanilla, Colotepec, Puerto Escondido, Oaxaca.
 
@@ -407,7 +407,7 @@ Si producción ya lo trae, el fallo está en el JS, no en el despliegue.
 
 | Dato | Valor |
 |---|---|
-| Nombre | TABIRÁ ICES |
+| Nombre | TABIRAÍCES |
 | Ubicación | Ventanilla, Colotepec, Oaxaca |
 | Productos | Bloques, tabicones, postes para cercar (lineales 10x10, esquineros 12x12) |
 | Servicios | Venta de material, retroexcavadora, inmobiliaria |

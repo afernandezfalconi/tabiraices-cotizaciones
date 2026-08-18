@@ -6,40 +6,22 @@ function initCentroModule() {
 }
 
 async function loadCentroData() {
-  const userId = sessionStorage.getItem('tabiraices_user') || 'admin';
-  const userRole = sessionStorage.getItem('tabiraices_user_role') || 'admin';
+  // La bitacora exige permiso; un vendedor sigue viendo sus holds sin ella.
+  if (window.puede && puede('bitacora')) {
+    try {
+      auditLogs = (await api('/api/audit?limit=100')) || [];
+    } catch (e) {
+      if (e.message !== 'SESION_EXPIRADA') console.error('Auditoria:', e.message);
+    }
+  }
 
   try {
-    // Cargar auditoría
-    const auditResponse = await fetch('https://tabiraices-inventory-api.lindero-coti.workers.dev/api/audit?limit=100', {
-      headers: {
-        'X-User-ID': userId,
-        'X-User-Role': userRole,
-      },
-    });
-
-    if (auditResponse.ok) {
-      const auditData = await auditResponse.json();
-      auditLogs = auditData.data || [];
-    }
-
-    // Cargar holds
-    const holdsResponse = await fetch('https://tabiraices-inventory-api.lindero-coti.workers.dev/api/holds', {
-      headers: {
-        'X-User-ID': userId,
-        'X-User-Role': userRole,
-      },
-    });
-
-    if (holdsResponse.ok) {
-      const holdsData = await holdsResponse.json();
-      allHolds = holdsData.data || [];
-    }
-
-    renderCentroModule();
-  } catch (error) {
-    console.error('Centro data load error:', error);
+    allHolds = (await api('/api/holds')) || [];
+  } catch (e) {
+    if (e.message !== 'SESION_EXPIRADA') console.error('Holds:', e.message);
   }
+
+  renderCentroModule();
 }
 
 function renderCentroModule() {

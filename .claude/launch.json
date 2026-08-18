@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "tabiraices-web",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--yes", "http-server", "web", "-p", "8788", "-c-1"],
+      "port": 8788
+    }
+  ]
+}

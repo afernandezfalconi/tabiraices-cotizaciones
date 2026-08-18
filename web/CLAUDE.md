@@ -1,4 +1,4 @@
-# TABIRÁ ICES
+# TABIRAÍCES
 
 Sitio web + cotizador para Tabiraices — venta de materiales de construcción e inmobiliaria en Ventanilla, Colotepec, Puerto Escondido, Oaxaca.
 
@@ -26,7 +26,7 @@ HTML multipágina + Tailwind CSS + JavaScript vanilla. Front en Cloudflare Pages
 
 | Dato | Valor |
 |---|---|
-| Nombre | TABIRÁ ICES |
+| Nombre | TABIRAÍCES |
 | Ubicación | Ventanilla, Colotepec, Oaxaca |
 | Zona de servicio | Puerto Escondido y alrededores |
 | WhatsApp | +52 958 123 4567 |

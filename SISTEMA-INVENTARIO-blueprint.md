@@ -1,4 +1,4 @@
-# TABIRAICES — Sistema de Inventario — Blueprint
+# TABIRAÍCES — Sistema de Inventario — Blueprint
 
 > Generado por The Architect el 2026-08-14
 > Archetype: Internal Tool with Backend Persistence
@@ -8,7 +8,7 @@
 ## 1. Project Overview
 
 ### Vision
-Sistema centralizado de gestión de inventario para TABIRAICES que integra con el cotizador existente. Permite a admins y vendedores ver stock en tiempo real, crear cotizaciones que bloquean material por 24h (configurable), y automatiza la conversión de cotizaciones pagadas a ventas reales. Incluye auditoría completa de todos los cambios y cálculo de valor total del stock en tiempo real.
+Sistema centralizado de gestión de inventario para TABIRAÍCES que integra con el cotizador existente. Permite a admins y vendedores ver stock en tiempo real, crear cotizaciones que bloquean material por 24h (configurable), y automatiza la conversión de cotizaciones pagadas a ventas reales. Incluye auditoría completa de todos los cambios y cálculo de valor total del stock en tiempo real.
 
 ### Goals
 - Unificar control de inventario (antes disperso en hojas de cálculo)
@@ -1086,7 +1086,7 @@ No agregar jQuery, React, Vue, etc.
 ## 12. CLAUDE.md (para el builder)
 
 ```markdown
-# TABIRAICES — Sistema de Inventario
+# TABIRAÍCES — Sistema de Inventario
 
 Sistema cloud de gestión de inventario integrado con cotizador. Bloquea material 24h en cotizaciones, sincroniza cada 30s, audita todo.
 
