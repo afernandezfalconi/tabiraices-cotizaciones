@@ -55,6 +55,9 @@ function renderCentroModule() {
     <div class="page">
       <h2 style="font-size: 20px; font-weight: 900; margin-bottom: 20px; color: var(--text); text-transform: uppercase; letter-spacing: 0.5px;">🏢 Centro de Cotizaciones</h2>
 
+      <!-- El panel de administración se monta aquí (solo rol admin) -->
+      <div id="admin-panel-slot"></div>
+
       <div class="stats">
         <div class="sc">
           <div class="sl">Cotizaciones Pendientes</div>
