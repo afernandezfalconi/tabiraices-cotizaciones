@@ -1,13 +1,13 @@
 import { AuditService } from '../services/audit-service';
-import { requireAdmin } from '../middleware/auth';
-export async function handleAuditRequest(request, kv) {
+import { requirePermiso, AuthError } from '../middleware/auth';
+export async function handleAuditRequest(request, kv, usuariosKV) {
     const url = new URL(request.url);
     const pathname = url.pathname;
     const auditService = new AuditService(kv);
     try {
         // GET /api/audit
         if (request.method === 'GET' && pathname === '/api/audit') {
-            const auth = await requireAdmin(request);
+            const auth = await requirePermiso(request, usuariosKV, 'bitacora');
             const limit = parseInt(url.searchParams.get('limit') || '100');
             const tipo = url.searchParams.get('tipo') || undefined;
             const usuario_id = url.searchParams.get('usuario_id') || undefined;
@@ -32,6 +32,8 @@ export async function handleAuditRequest(request, kv) {
         });
     }
     catch (error) {
+        if (error instanceof AuthError)
+            throw error;
         console.error('Audit route error:', error);
         const status = error.message === 'UNAUTHORIZED'
             ? 401

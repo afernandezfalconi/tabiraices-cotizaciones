@@ -1,8 +1,9 @@
 import { HoldsService } from '../services/holds-service';
 import { InventoryService } from '../services/inventory-service';
 import { AuditService } from '../services/audit-service';
-import { requireAuth, requireAdmin } from '../middleware/auth';
-export async function handleHoldsRequest(request, kv, settings) {
+import { requirePermiso, AuthError } from '../middleware/auth';
+import { puede } from '../lib/roles';
+export async function handleHoldsRequest(request, kv, settings, usuariosKV) {
     const url = new URL(request.url);
     const pathname = url.pathname;
     const holdsService = new HoldsService(kv);
@@ -11,7 +12,7 @@ export async function handleHoldsRequest(request, kv, settings) {
     try {
         // POST /api/holds (crear hold)
         if (request.method === 'POST' && pathname === '/api/holds') {
-            const auth = await requireAuth(request);
+            const auth = await requirePermiso(request, usuariosKV, 'apartar');
             const body = (await request.json());
             const { cotizacion_id, producto_id, cantidad, notas } = body;
             if (!cotizacion_id || !producto_id || !cantidad || cantidad <= 0) {
@@ -23,14 +24,15 @@ export async function handleHoldsRequest(request, kv, settings) {
             if (product.cantidad_disponible < cantidad) {
                 throw new Error('INSUFFICIENT_AVAILABLE_STOCK');
             }
-            const hold = await holdsService.createHold(cotizacion_id, producto_id, cantidad, auth.userID, settings.hold_duracion_horas || 24);
+            const hold = await holdsService.createHold(cotizacion_id, producto_id, cantidad, auth.id, // el id, no el nombre: es contra esto que se filtra "mis holds"
+            settings.hold_duracion_horas || 24);
             // Actualizar cantidad bloqueada
             const newBlockedQty = product.cantidad_bloqueada + cantidad;
             await inventoryService.updateBlockedQuantity(producto_id, newBlockedQty);
             // Auditoría
             await auditService.log({
                 tipo: 'hold_creado',
-                usuario_id: auth.userID,
+                usuario_id: auth.usuario,
                 producto_id,
                 cantidad_antes: product.cantidad_bloqueada,
                 cantidad_despues: newBlockedQty,
@@ -47,8 +49,8 @@ export async function handleHoldsRequest(request, kv, settings) {
         }
         // GET /api/holds
         if (request.method === 'GET' && pathname === '/api/holds') {
-            const auth = await requireAuth(request);
-            const holds = await holdsService.getActiveHolds(auth.userRole === 'vendedor' ? auth.userID : undefined);
+            const auth = await requirePermiso(request, usuariosKV, 'apartar');
+            const holds = await holdsService.getActiveHolds(puede(auth, 'ver_todas') ? undefined : auth.id);
             return new Response(JSON.stringify({ success: true, data: holds }), {
                 status: 200,
                 headers: { 'Content-Type': 'application/json' },
@@ -56,7 +58,7 @@ export async function handleHoldsRequest(request, kv, settings) {
         }
         // GET /api/holds/:id
         if (request.method === 'GET' && pathname.match(/^\/api\/holds\/[^/]+$/)) {
-            const auth = await requireAuth(request);
+            const auth = await requirePermiso(request, usuariosKV, 'apartar');
             const holdId = pathname.split('/').pop();
             if (!holdId)
                 throw new Error('INVALID_HOLD_ID');
@@ -65,7 +67,7 @@ export async function handleHoldsRequest(request, kv, settings) {
                 return new Response(JSON.stringify({ success: false, error: 'NOT_FOUND' }), { status: 404, headers: { 'Content-Type': 'application/json' } });
             }
             // Vendedor solo ve sus holds
-            if (auth.userRole === 'vendedor' && hold.creado_por !== auth.userID) {
+            if (!puede(auth, 'ver_todas') && hold.creado_por !== auth.id) {
                 return new Response(JSON.stringify({ success: false, error: 'FORBIDDEN' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
             }
             return new Response(JSON.stringify({ success: true, data: hold }), {
@@ -75,7 +77,7 @@ export async function handleHoldsRequest(request, kv, settings) {
         }
         // PATCH /api/holds/:id/pagar
         if (request.method === 'PATCH' && pathname.includes('/pagar')) {
-            const auth = await requireAdmin(request);
+            const auth = await requirePermiso(request, usuariosKV, 'inventario');
             const holdId = pathname.split('/')[3];
             if (!holdId)
                 throw new Error('INVALID_HOLD_ID');
@@ -97,7 +99,7 @@ export async function handleHoldsRequest(request, kv, settings) {
             // Auditoría
             await auditService.log({
                 tipo: 'venta',
-                usuario_id: auth.userID,
+                usuario_id: auth.usuario,
                 producto_id: hold.producto_id,
                 cantidad_antes: product.cantidad_total,
                 cantidad_despues: updatedProduct.cantidad_total,
@@ -121,6 +123,8 @@ export async function handleHoldsRequest(request, kv, settings) {
         });
     }
     catch (error) {
+        if (error instanceof AuthError)
+            throw error;
         console.error('Holds route error:', error);
         const status = error.message === 'UNAUTHORIZED'
             ? 401

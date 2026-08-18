@@ -7,6 +7,13 @@ binding = "INVENTORY_KV"
 id = "0869d4395f1d4f03b2f6e050c32daa87"
 preview_id = "0869d4395f1d4f03b2f6e050c32daa87"
 
+# Usuarios, tokens de sesión e intentos de login. Separado de INVENTORY_KV
+# para que un list() de inventario no recorra usuarios.
+[[kv_namespaces]]
+binding = "TABIRA_USUARIOS"
+id = "5d69a2ae9fc540a5a6b27d355a44bcaa"
+preview_id = "5d69a2ae9fc540a5a6b27d355a44bcaa"
+
 [build]
 command = "npm run build"
 cwd = "."

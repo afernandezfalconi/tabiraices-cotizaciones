@@ -1,11 +1,11 @@
-import { requireAdmin } from '../middleware/auth';
-export async function handleSettingsRequest(request, kv) {
+import { requirePermiso, AuthError } from '../middleware/auth';
+export async function handleSettingsRequest(request, kv, usuariosKV) {
     const url = new URL(request.url);
     const pathname = url.pathname;
     try {
         // GET /api/settings
         if (request.method === 'GET' && pathname === '/api/settings') {
-            const auth = await requireAdmin(request);
+            const auth = await requirePermiso(request, usuariosKV, 'inventario');
             let settings = await kv.get('settings');
             if (!settings) {
                 const defaultSettings = {
@@ -27,7 +27,7 @@ export async function handleSettingsRequest(request, kv) {
         }
         // PATCH /api/settings
         if (request.method === 'PATCH' && pathname === '/api/settings') {
-            const auth = await requireAdmin(request);
+            const auth = await requirePermiso(request, usuariosKV, 'inventario');
             const body = (await request.json());
             let settings = await kv.get('settings');
             const currentSettings = settings
@@ -67,6 +67,8 @@ export async function handleSettingsRequest(request, kv) {
         });
     }
     catch (error) {
+        if (error instanceof AuthError)
+            throw error;
         console.error('Settings route error:', error);
         const status = error.message === 'UNAUTHORIZED'
             ? 401

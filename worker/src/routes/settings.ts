@@ -1,9 +1,10 @@
 import { Settings, ApiResponse } from '../types';
-import { requireAdmin } from '../middleware/auth';
+import { requirePermiso, AuthError } from '../middleware/auth';
 
 export async function handleSettingsRequest(
   request: Request,
-  kv: KVNamespace
+  kv: KVNamespace,
+  usuariosKV: KVNamespace
 ): Promise<Response> {
   const url = new URL(request.url);
   const pathname = url.pathname;
@@ -11,7 +12,7 @@ export async function handleSettingsRequest(
   try {
     // GET /api/settings
     if (request.method === 'GET' && pathname === '/api/settings') {
-      const auth = await requireAdmin(request);
+      const auth = await requirePermiso(request, usuariosKV, 'inventario');
 
       let settings = await kv.get('settings');
       if (!settings) {
@@ -37,7 +38,7 @@ export async function handleSettingsRequest(
 
     // PATCH /api/settings
     if (request.method === 'PATCH' && pathname === '/api/settings') {
-      const auth = await requireAdmin(request);
+      const auth = await requirePermiso(request, usuariosKV, 'inventario');
       const body = (await request.json()) as any;
 
       let settings = await kv.get('settings');
@@ -83,6 +84,7 @@ export async function handleSettingsRequest(
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error: any) {
+    if (error instanceof AuthError) throw error;
     console.error('Settings route error:', error);
     const status =
       error.message === 'UNAUTHORIZED'

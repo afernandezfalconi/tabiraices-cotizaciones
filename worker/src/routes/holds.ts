@@ -1,13 +1,15 @@
 import { HoldsService } from '../services/holds-service';
 import { InventoryService } from '../services/inventory-service';
 import { AuditService } from '../services/audit-service';
-import { requireAuth, requireAdmin } from '../middleware/auth';
+import { requirePermiso, AuthError } from '../middleware/auth';
+import { puede } from '../lib/roles';
 import { ApiResponse } from '../types';
 
 export async function handleHoldsRequest(
   request: Request,
   kv: KVNamespace,
-  settings: any
+  settings: any,
+  usuariosKV: KVNamespace
 ): Promise<Response> {
   const url = new URL(request.url);
   const pathname = url.pathname;
@@ -19,7 +21,7 @@ export async function handleHoldsRequest(
   try {
     // POST /api/holds (crear hold)
     if (request.method === 'POST' && pathname === '/api/holds') {
-      const auth = await requireAuth(request);
+      const auth = await requirePermiso(request, usuariosKV, 'apartar');
       const body = (await request.json()) as any;
       const { cotizacion_id, producto_id, cantidad, notas } = body;
 
@@ -38,7 +40,7 @@ export async function handleHoldsRequest(
         cotizacion_id,
         producto_id,
         cantidad,
-        auth.userID,
+        auth.id, // el id, no el nombre: es contra esto que se filtra "mis holds"
         settings.hold_duracion_horas || 24
       );
 
@@ -49,7 +51,7 @@ export async function handleHoldsRequest(
       // Auditoría
       await auditService.log({
         tipo: 'hold_creado',
-        usuario_id: auth.userID,
+        usuario_id: auth.usuario,
         producto_id,
         cantidad_antes: product.cantidad_bloqueada,
         cantidad_despues: newBlockedQty,
@@ -68,9 +70,9 @@ export async function handleHoldsRequest(
 
     // GET /api/holds
     if (request.method === 'GET' && pathname === '/api/holds') {
-      const auth = await requireAuth(request);
+      const auth = await requirePermiso(request, usuariosKV, 'apartar');
       const holds = await holdsService.getActiveHolds(
-        auth.userRole === 'vendedor' ? auth.userID : undefined
+        puede(auth, 'ver_todas') ? undefined : auth.id
       );
 
       return new Response(JSON.stringify({ success: true, data: holds }), {
@@ -81,7 +83,7 @@ export async function handleHoldsRequest(
 
     // GET /api/holds/:id
     if (request.method === 'GET' && pathname.match(/^\/api\/holds\/[^/]+$/)) {
-      const auth = await requireAuth(request);
+      const auth = await requirePermiso(request, usuariosKV, 'apartar');
       const holdId = pathname.split('/').pop();
       if (!holdId) throw new Error('INVALID_HOLD_ID');
 
@@ -94,7 +96,7 @@ export async function handleHoldsRequest(
       }
 
       // Vendedor solo ve sus holds
-      if (auth.userRole === 'vendedor' && hold.creado_por !== auth.userID) {
+      if (!puede(auth, 'ver_todas') && hold.creado_por !== auth.id) {
         return new Response(
           JSON.stringify({ success: false, error: 'FORBIDDEN' }),
           { status: 403, headers: { 'Content-Type': 'application/json' } }
@@ -109,7 +111,7 @@ export async function handleHoldsRequest(
 
     // PATCH /api/holds/:id/pagar
     if (request.method === 'PATCH' && pathname.includes('/pagar')) {
-      const auth = await requireAdmin(request);
+      const auth = await requirePermiso(request, usuariosKV, 'inventario');
       const holdId = pathname.split('/')[3];
       if (!holdId) throw new Error('INVALID_HOLD_ID');
 
@@ -142,7 +144,7 @@ export async function handleHoldsRequest(
       // Auditoría
       await auditService.log({
         tipo: 'venta',
-        usuario_id: auth.userID,
+        usuario_id: auth.usuario,
         producto_id: hold.producto_id,
         cantidad_antes: product.cantidad_total,
         cantidad_despues: updatedProduct.cantidad_total,
@@ -170,6 +172,7 @@ export async function handleHoldsRequest(
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error: any) {
+    if (error instanceof AuthError) throw error;
     console.error('Holds route error:', error);
     const status =
       error.message === 'UNAUTHORIZED'
