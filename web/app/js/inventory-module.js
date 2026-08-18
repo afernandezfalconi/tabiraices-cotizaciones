@@ -89,6 +89,9 @@ function renderInventoryModule() {
       </div>
     </div>
   `;
+
+  renderInventoryTable();
+  updateKPIs();
 }
 
 function renderInventoryTable() {
