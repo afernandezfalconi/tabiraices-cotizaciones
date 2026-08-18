@@ -223,8 +223,8 @@ hr.dv{border:none;border-top:1.5px solid var(--div);margin:16px 0}
   </div>
 </nav>
 
-<div class="page" id="app">
-  <!-- Panel Admin: Crear Productos -->
+<!-- Panel Admin: fuera de #app porque render() reemplaza su innerHTML -->
+<div class="page" style="padding-bottom:0;">
   <div id="admin-panel" style="display:none;margin-bottom:20px;padding:20px;background:var(--surface2);border-radius:12px;border-left:4px solid var(--gold);">
     <h3 style="margin-bottom:15px;color:var(--text);">📦 Panel de Administración</h3>
 
@@ -259,6 +259,8 @@ hr.dv{border:none;border-top:1.5px solid var(--div);margin:16px 0}
     </div>
   </div>
 </div>
+
+<div class="page" id="app"></div>
 
 <script>
 // Initialize KV on page load
