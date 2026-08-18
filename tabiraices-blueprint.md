@@ -248,13 +248,20 @@ Añadir el binding devuelto a `wrangler.toml`. No borrar el binding de `INVENTOR
 Crear `worker/src/lib/crypto.ts` con `hashPassword`, `hashIp`, `aleatorio`, `iguales`, `normalizar`, `limpiar`, portadas desde `SOLUCIONESPUERTO/worker/src/index.js` (líneas ~85-115). Traducir a TypeScript, sin cambiar la lógica.
 
 **Paso 3 — Sembrar el primer DUEÑO (crítico)**
-Endpoint temporal `POST /api/bootstrap`, protegido por un secreto de Worker:
-- Si ya existe algún `user:*`, responde 403 y no hace nada.
-- Si no, crea el DUEÑO con el usuario y contraseña que reciba.
+
+> ⚠️ **Corregido tras las pruebas E2E.** La primera versión de este paso usaba un
+> endpoint `POST /api/bootstrap` con un guardia "¿ya hay usuarios?" resuelto con
+> `kv.list()`. **Falló en la prueba:** KV es eventualmente consistente, el guardia
+> no ve al usuario recién creado y deja crear DUEÑOS ilimitados. Además, un
+> endpoint así es una puerta trasera permanente si el token se filtra.
+
+Se siembra desde la CLI, sin endpoint:
 ```bash
-npx wrangler secret put BOOTSTRAP_TOKEN
+cd worker
+node scripts/sembrar-dueno.mjs <usuario> "<Nombre Completo>"
 ```
-Ejecutarlo una vez, verificar que el login funciona, y **borrar el endpoint en el paso 9**.
+Pide la contraseña de forma interactiva, calcula el PBKDF2 en tu máquina y sólo
+sube el hash. La contraseña nunca viaja por HTTP ni queda en el historial.
 
 **Paso 4 — Autenticación en el backend**
 Reescribir `worker/src/middleware/auth.ts`:
@@ -350,6 +357,8 @@ Soluciones Puerto tiene 69/69 + 29/29 pruebas E2E; conviene portar ese enfoque c
 10. **Nada de HTML estático dentro de `#app`** — `render()` lo destruye. UI persistente va fuera y se monta en su slot.
 11. **No desplegar el paso 4 sin haber completado el paso 3**, o nadie podrá entrar al sistema.
 12. **El margen no sale del Worker.** `precio_costo` y `valor_total` se recortan en el servidor para quien no tenga `ver_costos`. Ocultarlo en la pantalla no es seguridad.
+13. **Nunca apoyar una garantía de seguridad en `kv.list()`.** Es eventualmente consistente. Dos fallos reales salieron de ahí en este proyecto: el guardia del bootstrap y el cierre de sesiones. Lo que debe ser exacto se resuelve con una lectura directa de la clave (`kv.get`) o con un contador en el propio registro del usuario.
+14. **Cerrar sesiones = subir `gen` en el usuario.** Barrer `token:*` con `list()` es sólo limpieza best-effort; la invalidación real es la comparación de generación en `porToken()`.
 
 ---
 
