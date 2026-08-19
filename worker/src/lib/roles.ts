@@ -1,11 +1,17 @@
 /**
  * Roles y permisos.
  *
- * DUENO  — el dueño del sistema. Único con 'admins', el permiso que habilita
- *          crear o modificar cuentas de nivel alto (DUENO y ADMIN).
- * ADMIN  — todo lo operativo y administra vendedores, pero no puede tocar a un
- *          DUENO ni a otro ADMIN, ni ascender a nadie a esos roles.
+ * ADMIN  — el proveedor del sistema (quien lo construye y lo mantiene). Único
+ *          con 'admins', el permiso que habilita crear o modificar cuentas de
+ *          nivel alto. Es el rol con control total.
+ * DUENO  — el dueño del negocio (el cliente). Opera su empresa por completo:
+ *          ve sus costos y su margen, mueve inventario y gestiona a sus propios
+ *          vendedores. No puede tocar cuentas ADMIN ni crear otras de ese nivel;
+ *          para eso le pide al ADMIN.
  * VENDEDOR — cotiza, aparta material y consulta stock. No ve costos.
+ *
+ * ⚠️ ADMIN está POR ENCIMA de DUENO, al revés de lo que sugiere el nombre. Es
+ * deliberado: el cliente es dueño del negocio, no del sistema.
  *
  * ⚠️ Los permisos se derivan del ROL en cada petición y NUNCA se guardan en el
  * registro del usuario. Persistirlos fue un bug real en LUNA GI (permissions=193):
@@ -13,16 +19,16 @@
  */
 
 export const ROLES = {
-  DUENO: ['cotizar', 'apartar', 'ver_todas', 'ver_stock', 'ver_costos', 'inventario', 'ingreso', 'usuarios', 'bitacora', 'admins'],
-  ADMIN: ['cotizar', 'apartar', 'ver_todas', 'ver_stock', 'ver_costos', 'inventario', 'ingreso', 'usuarios', 'bitacora'],
+  ADMIN: ['cotizar', 'apartar', 'ver_todas', 'ver_stock', 'ver_costos', 'inventario', 'ingreso', 'usuarios', 'bitacora', 'admins'],
+  DUENO: ['cotizar', 'apartar', 'ver_todas', 'ver_stock', 'ver_costos', 'inventario', 'ingreso', 'usuarios', 'bitacora'],
   VENDEDOR: ['cotizar', 'apartar', 'ver_stock'],
 } as const;
 
 export type Rol = keyof typeof ROLES;
 export type Permiso = (typeof ROLES)[Rol][number];
 
-/** Roles cuya gestión exige el permiso 'admins', es decir, ser DUENO. */
-export const ROLES_ADMIN: Rol[] = ['DUENO', 'ADMIN'];
+/** Roles cuya gestión exige el permiso 'admins', es decir, ser ADMIN. */
+export const ROLES_ADMIN: Rol[] = ['ADMIN', 'DUENO'];
 
 export const esRolValido = (r: unknown): r is Rol =>
   typeof r === 'string' && Object.prototype.hasOwnProperty.call(ROLES, r);

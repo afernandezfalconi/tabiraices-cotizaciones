@@ -46,7 +46,7 @@ export async function handleUsuariosRequest(
 
     const rolPedido = esRolValido(body.rol) ? body.rol : 'VENDEDOR';
     if (!puedeAdministrarRol(yo, rolPedido)) {
-      return err('Solo un DUEÑO puede crear cuentas de ADMIN o DUEÑO', 403, 'PERMISO');
+      return err('Solo un ADMIN puede crear cuentas de ADMIN o DUEÑO', 403, 'PERMISO');
     }
 
     try {
@@ -68,10 +68,10 @@ export async function handleUsuariosRequest(
 
     // Tocar una cuenta de nivel alto exige 'admins'; ascender a una también.
     if (!puedeAdministrarRol(yo, objetivo.rol)) {
-      return err('Solo un DUEÑO puede administrar cuentas de ADMIN o DUEÑO', 403, 'PERMISO');
+      return err('Solo un ADMIN puede administrar cuentas de ADMIN o DUEÑO', 403, 'PERMISO');
     }
     if (body.rol && esRolValido(body.rol) && !puedeAdministrarRol(yo, body.rol)) {
-      return err('Solo un DUEÑO puede asignar ese rol', 403, 'PERMISO');
+      return err('Solo un ADMIN puede asignar ese rol', 403, 'PERMISO');
     }
     // Nadie se elimina ni se desactiva a sí mismo: evita quedarse fuera.
     if (objetivo.id === yo.id && (metodo === 'DELETE' || body.activo === false)) {

@@ -1,16 +1,20 @@
 #!/usr/bin/env node
 /**
- * Siembra el primer usuario DUEÑO directamente en KV.
+ * Siembra el primer usuario ADMIN directamente en KV.
  *
- * Existe porque un endpoint HTTP de bootstrap es una puerta trasera permanente,
+ * ADMIN es el rol de control total (el proveedor del sistema). El DUENO —el
+ * cliente— opera su negocio pero no puede crear cuentas de este nivel: para eso
+ * le pide al ADMIN. Por eso la primera cuenta tiene que sembrarse por aquí.
+ *
+ * No hay endpoint HTTP de bootstrap porque sería una puerta trasera permanente,
  * y porque su guardia "¿ya hay usuarios?" no puede ser fiable: kv.list() es
- * eventualmente consistente y deja una ventana para crear DUEÑOS ilimitados.
+ * eventualmente consistente y deja una ventana para crear ADMINS ilimitados.
  *
  * Aquí el hash se calcula en tu máquina y sólo el hash llega a Cloudflare.
  * La contraseña nunca viaja por HTTP ni queda en el código del Worker.
  *
  * Uso:
- *   node scripts/sembrar-dueno.mjs <usuario> "<Nombre Completo>"
+ *   node scripts/sembrar-admin.mjs <usuario> "<Nombre Completo>"
  *
  * Pide la contraseña de forma interactiva: no la pases como argumento, o
  * quedaría en el historial del shell.
@@ -121,7 +125,7 @@ const kvGet = (clave) => {
 const [, , usuarioRaw, nombreRaw] = process.argv;
 
 if (!usuarioRaw) {
-  console.error('Uso: node scripts/sembrar-dueno.mjs <usuario> "<Nombre Completo>"');
+  console.error('Uso: node scripts/sembrar-admin.mjs <usuario> "<Nombre Completo>"');
   process.exit(1);
 }
 
@@ -152,7 +156,7 @@ const registro = {
   nombre: (nombreRaw || usuario).trim().slice(0, 120),
   salt,
   hash: await hashPassword(password, salt),
-  rol: 'DUENO',
+  rol: 'ADMIN',
   activo: true,
   gen: 0,
   creado: new Date().toISOString(),
@@ -162,7 +166,7 @@ const metadata = {
   id,
   usuario,
   nombre: registro.nombre,
-  rol: 'DUENO',
+  rol: 'ADMIN',
   activo: true,
   creado: registro.creado,
 };
@@ -170,5 +174,5 @@ const metadata = {
 kvPut(`user:${id}`, JSON.stringify(registro), metadata);
 kvPut(`idx:usuario:${usuario}`, id);
 
-console.log(`\n✓ DUEÑO "${usuario}" sembrado.`);
+console.log(`\n✓ ADMIN "${usuario}" sembrado.`);
 console.log('  La contraseña no quedó guardada en ningún archivo ni en el historial.');
