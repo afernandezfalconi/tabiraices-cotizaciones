@@ -27,8 +27,11 @@ export async function handleHoldsRequest(request, kv, settings, usuariosKV) {
             const hold = await holdsService.createHold(cotizacion_id, producto_id, cantidad, auth.id, // el id, no el nombre: es contra esto que se filtra "mis holds"
             settings.hold_duracion_horas || 24);
             // Actualizar cantidad bloqueada
-            const newBlockedQty = product.cantidad_bloqueada + cantidad;
-            await inventoryService.updateBlockedQuantity(producto_id, newBlockedQty);
+            // Recalcular desde los apartados vigentes en vez de sumar sobre el valor
+            // guardado: una lectura desfasada de KV perdería el incremento.
+            const activos = await holdsService.getActiveHolds();
+            const trasCrear = await inventoryService.recalcularBloqueado(producto_id, activos);
+            const newBlockedQty = trasCrear ? trasCrear.cantidad_bloqueada : product.cantidad_bloqueada;
             // Auditoría
             await auditService.log({
                 tipo: 'hold_creado',
@@ -94,8 +97,8 @@ export async function handleHoldsRequest(request, kv, settings, usuariosKV) {
                 throw new Error('PRODUCT_NOT_FOUND');
             const updatedProduct = await inventoryService.deductStock(hold.producto_id, hold.cantidad);
             // Actualizar cantidad bloqueada (restar el hold)
-            const newBlockedQty = Math.max(0, product.cantidad_bloqueada - hold.cantidad);
-            await inventoryService.updateBlockedQuantity(hold.producto_id, newBlockedQty);
+            const activosTrasPago = await holdsService.getActiveHolds();
+            await inventoryService.recalcularBloqueado(hold.producto_id, activosTrasPago);
             // Auditoría
             await auditService.log({
                 tipo: 'venta',
@@ -116,6 +119,52 @@ export async function handleHoldsRequest(request, kv, settings, usuariosKV) {
                 status: 200,
                 headers: { 'Content-Type': 'application/json' },
             });
+        }
+        // PATCH /api/holds/:id/cancelar — el cliente se arrepintió.
+        //
+        // Sin esto el material quedaba bloqueado 24 h hasta que expirara el TTL, sin
+        // forma de soltarlo. `releaseHold()` marcaba el apartado como liberado pero
+        // NO devolvía `cantidad_bloqueada`, así que el stock seguía sin aparecer
+        // como disponible: por eso la devolución se hace aquí.
+        if (request.method === 'PATCH' && pathname.includes('/cancelar')) {
+            const auth = await requirePermiso(request, usuariosKV, 'apartar');
+            const holdId = pathname.split('/')[3];
+            if (!holdId)
+                throw new Error('INVALID_HOLD_ID');
+            const hold = await holdsService.getHold(holdId);
+            if (!hold)
+                throw new Error('HOLD_NOT_FOUND');
+            // Un vendedor sólo cancela lo suyo; quien tiene 'ver_todas' cancela todo.
+            if (!puede(auth, 'ver_todas') && hold.creado_por !== auth.id) {
+                return new Response(JSON.stringify({ success: false, error: 'FORBIDDEN' }), {
+                    status: 403,
+                    headers: { 'Content-Type': 'application/json' },
+                });
+            }
+            if (hold.estado !== 'pendiente')
+                throw new Error('HOLD_NOT_PENDING');
+            const updatedHold = await holdsService.releaseHold(holdId);
+            const product = await inventoryService.getProduct(hold.producto_id);
+            if (!product)
+                throw new Error('PRODUCT_NOT_FOUND');
+            const bloqueadaAntes = product.cantidad_bloqueada;
+            const activosTrasCancelar = await holdsService.getActiveHolds();
+            const updatedProduct = await inventoryService.recalcularBloqueado(hold.producto_id, activosTrasCancelar);
+            const nuevaBloqueada = updatedProduct ? updatedProduct.cantidad_bloqueada : bloqueadaAntes;
+            await auditService.log({
+                tipo: 'hold_liberado',
+                usuario_id: auth.usuario,
+                producto_id: hold.producto_id,
+                cantidad_antes: bloqueadaAntes,
+                cantidad_despues: nuevaBloqueada,
+                detalles: {
+                    hold_id: holdId,
+                    cotizacion_id: hold.cotizacion_id,
+                    cantidad_liberada: hold.cantidad,
+                    razon: 'Cotización cancelada',
+                },
+            });
+            return new Response(JSON.stringify({ success: true, data: { hold: updatedHold, producto: updatedProduct } }), { status: 200, headers: { 'Content-Type': 'application/json' } });
         }
         return new Response(JSON.stringify({ success: false, error: 'NOT_FOUND' }), {
             status: 404,

@@ -97,6 +97,24 @@ export class InventoryService {
         await this.kv.put(`inventory:${productId}`, JSON.stringify(product));
         return product;
     }
+    /**
+     * Recalcula `cantidad_bloqueada` sumando los apartados pendientes.
+     *
+     * ⚠️ NO usar sumas y restas sobre el valor guardado. KV es eventualmente
+     * consistente: si la lectura viene desfasada, el delta se pierde para
+     * siempre. Pasó de verdad — cancelar un apartado devolvía 200 y el material
+     * seguía bloqueado.
+     *
+     * El bloqueo es estado DERIVADO de los apartados vigentes, no un contador
+     * independiente. Recalcularlo es idempotente: si una escritura se pierde, la
+     * siguiente operación lo corrige sola.
+     */
+    async recalcularBloqueado(productId, apartadosPendientes) {
+        const bloqueada = apartadosPendientes
+            .filter((h) => h.producto_id === productId && h.estado === 'pendiente')
+            .reduce((s, h) => s + (h.cantidad || 0), 0);
+        return this.updateBlockedQuantity(productId, bloqueada);
+    }
     async updateBlockedQuantity(productId, bloqueada) {
         const product = await this.getProduct(productId);
         if (!product)

@@ -128,7 +128,22 @@ function loadLanding() {
     return;
   }
 
-  const coti = JSON.parse(localStorage.getItem(`coti_${id}`));
+  /**
+   * La landing guarda un APUNTADOR `{__ref:"0021"}`, no una copia: así siempre
+   * muestra la versión vigente de la cotización, no la foto de cuando se
+   * compartió. Las landings viejas guardaban la copia completa y se siguen
+   * leyendo tal cual.
+   */
+  let coti = null;
+  try {
+    const guardado = JSON.parse(localStorage.getItem(`coti_${id}`) || 'null');
+    if (guardado && guardado.__ref !== undefined) {
+      const todas = JSON.parse(localStorage.getItem('tabiraices_quotes') || '[]');
+      coti = todas.find(q => String(q.id) === String(guardado.__ref)) || null;
+    } else {
+      coti = guardado;
+    }
+  } catch (e) {}
 
   if (!coti) {
     document.getElementById('content').innerHTML = '<div class="empty"><div class="empty-icon">❌</div><p>Esta cotización no existe</p></div>';

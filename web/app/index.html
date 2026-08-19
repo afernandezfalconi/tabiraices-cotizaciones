@@ -44,7 +44,7 @@ body{font-family:Montserrat,sans-serif;background:var(--bg);color:var(--text);mi
 .qpr{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .qr{text-align:right;flex-shrink:0}
 .badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:9px;font-weight:800;margin-bottom:5px;text-transform:uppercase;letter-spacing:.6px}
-.bp{background:var(--bp-bg);color:var(--bp-c)}.bs{background:var(--bs-bg);color:var(--bs-c)}.bpa{background:var(--bpa-bg);color:var(--bpa-c)}
+.bp{background:var(--bp-bg);color:var(--bp-c)}.bs{background:var(--bs-bg);color:var(--bs-c)}.bpa{background:var(--bpa-bg);color:var(--bpa-c)}.bdel{background:var(--del-bg);color:var(--del-c)}
 .qtot{font-size:22px;font-weight:900;color:var(--text);line-height:1;letter-spacing:-.5px}
 .qca{display:flex;gap:6px;align-items:center;padding-top:10px;border-top:1px solid var(--div);flex-wrap:wrap}
 /* STATUS DROPDOWN */
@@ -559,8 +559,8 @@ async function eliminarUsuario(id, usuario){
 const fmt=n=>new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',minimumFractionDigits:0,maximumFractionDigits:0}).format(n);
 const fmtN=n=>'$'+parseFloat(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
 const sub=items=>items.reduce((s,i)=>s+(parseFloat(i.unit)||0)*(parseFloat(i.qty)||0),0);
-const sLbl=s=>s==='paid'?'Pagado':s==='sent'?'Enviado':'Pendiente';
-const sCls=s=>s==='paid'?'bpa':s==='sent'?'bs':'bp';
+const sLbl=s=>s==='paid'?'Pagado':s==='sent'?'Enviado':s==='cancelled'?'Cancelado':'Pendiente';
+const sCls=s=>s==='paid'?'bpa':s==='sent'?'bs':s==='cancelled'?'bdel':'bp';
 function bSVG(sz){return`<img src="${LOGO_SRC}" style="height:${sz}px;width:auto" alt=""/>`;}
 
 async function downloadPDF(qi){
@@ -713,8 +713,16 @@ function shareLink(i){
   // ⚠️ Antes generaba un hash nuevo en CADA clic, y como las pantallas listaban
   // las landings junto a las cotizaciones, cada compartida creaba una tarjeta
   // fantasma y sumaba su importe otra vez en el Centro.
+  // La landing resuelve el apuntador contra `tabiraices_quotes`, así que la
+  // cotización tiene que estar persistida. Las de ejemplo viven sólo en memoria
+  // hasta que algo las guarda: sin esto, el enlace apuntaría a la nada.
+  saveQuotes();
   const hash=hashDeLanding(q.id)||genHash();
-  localStorage.setItem(`coti_${hash}`,JSON.stringify(q));
+  // Se guarda un APUNTADOR, no una copia (patrón de LINDERO.COTI). Así la
+  // landing siempre refleja la versión actual de la cotización, y no quedan
+  // objetos con forma de cotización que las pantallas confundan con otra más.
+  localStorage.setItem(`coti_${hash}`,JSON.stringify({__ref:String(q.id)}));
+  localStorage.setItem(`coti_ref_${q.id}`,hash);
   const url=window.location.origin+'/landing.html?id='+hash;
   const copied=navigator.clipboard?navigator.clipboard.writeText(url).then(()=>{alert('✅ Link copiado!\\n\\n'+url);if(confirm('¿Abrir en nueva pestaña?'))window.open(url)}):false;
   if(!copied)alert('Link compartible:\\n'+url);
@@ -817,6 +825,7 @@ function renderList(){
             <div class="st-opt bp" onclick="changeStatus(${i},'pending',event)">● Pendiente</div>
             <div class="st-opt bs" onclick="changeStatus(${i},'sent',event)">● Enviado</div>
             <div class="st-opt bpa" onclick="changeStatus(${i},'paid',event)">● Pagado</div>
+            <div class="st-opt bdel" onclick="changeStatus(${i},'cancelled',event)">● Cancelado</div>
           </div>
         </div>
         <button class="dbtn" onclick="delQ(${i})" title="Eliminar">×</button>
@@ -835,11 +844,31 @@ function renderForm(){
 function renderPreview(){
   const q=cq;const st=sub(q.items),iv=st*(q.ivaRate||0)/100,tot=st+iv;const i=quotes.findIndex(x=>x.id===q.id);
   return`<div style="display:flex;gap:8px;margin-bottom:14px;align-items:center;flex-wrap:wrap"><button class="btn bgh bsm" onclick="showView('list')">← Volver</button>${i>=0?`<button id="pdfbtn-${i}" class="btn bn" onclick="downloadPDF(${i})" style="padding:9px 20px">Descargar PDF</button>`:''}</div><div class="pw"><div class="phd"><div style="display:flex;align-items:center;gap:11px">${bSVG(50)}<div><div style="font-size:22px;font-weight:900;letter-spacing:1.5px;color:#fff;line-height:1;text-transform:uppercase">Tabiraíces</div><div style="font-size:9px;color:var(--gold);font-weight:700;letter-spacing:.5px;text-transform:uppercase">La base de toda buena obra</div></div></div><div style="text-align:right"><div style="font-size:9px;color:rgba(255,255,255,.4);font-weight:700;text-transform:uppercase">Factura Nro.</div><div style="font-size:28px;font-weight:900;color:var(--gold)">#${q.id}</div><div style="font-size:10px;color:rgba(255,255,255,.6)">Fecha: ${q.date}</div></div></div><div class="pct"><div class="ci">Tel: <span>954 100 4104 / 954 138 9557</span></div><div class="ci">Dir: <span>Ventanilla Colotepec</span></div><div class="ci">Email: <span>bloquera.tabiraices@gmail.com</span></div></div><div class="pbdy"><div class="pcg"><div class="pcc"><div class="pcl">Cliente</div><div class="pcv">${q.client||'—'}</div></div><div class="pcc"><div class="pcl">Proyecto / Obra</div><div class="pcv">${q.project||'—'}</div></div><div class="pcc"><div class="pcl">Entrega en</div><div class="pcv">${q.location||'—'}</div></div></div><table class="ptbl"><thead><tr><th>Descripción</th><th>Precio Unitario</th><th>Cantidad</th><th>Total</th></tr></thead><tbody>${q.items.filter(it=>it.desc||it.qty).map(it=>`<tr><td>${it.desc||'—'}</td><td>${fmt(parseFloat(it.unit)||0)}</td><td>${parseInt(it.qty)||0}</td><td style="font-weight:800">${fmt((parseFloat(it.unit)||0)*(parseFloat(it.qty)||0))}</td></tr>`).join('')}</tbody></table><div class="ptots"><div class="ptb"><div class="ptr"><span style="color:var(--muted)">Subtotal</span><span style="font-weight:800">${fmt(st)}</span></div><div class="ptr"><span style="color:var(--muted)">IVA (${q.ivaRate||0}%)</span><span style="font-weight:800">${fmt(iv)}</span></div><div class="ptg"><span class="ptgl">TOTAL</span><span class="ptgv">${fmt(tot)}</span></div></div></div><div class="sa"><div style="font-size:12px;color:var(--muted)">Forma de pago: <strong style="color:var(--text)">${q.payment||'—'}</strong></div><div style="text-align:center"><div style="width:155px;border-top:1.5px solid var(--navy);padding-top:5px;font-size:10px;color:var(--muted)">${q.client||''}</div><div style="font-size:9px;color:var(--muted);margin-top:2px">Firma / Aceptación del cliente</div></div></div>${bankHTML()}</div>${footerHTML()}</div>`;}
-function changeStatus(i,s,e){
+async function changeStatus(i,s,e){
   if(e)e.stopPropagation();
+  const anterior=quotes[i].status;
   quotes[i].status=s;
   saveQuotes();
   render();
+  // Cancelar devuelve el material apartado: sin esto quedaba bloqueado hasta
+  // que expirara el TTL de 24 h, sin forma de soltarlo.
+  if(s==='cancelled' && anterior!=='cancelled') await liberarApartados(quotes[i].id);
+}
+
+/** Suelta los apartados pendientes de una cotización cancelada. */
+async function liberarApartados(cotizacionId){
+  try{
+    const holds=await api('/api/holds');
+    const suyos=(holds||[]).filter(h=>String(h.cotizacion_id)===String(cotizacionId) && h.estado==='pendiente');
+    if(!suyos.length) return;
+    for(const h of suyos){
+      await api('/api/holds/'+h.id+'/cancelar',{method:'PATCH'});
+    }
+    alert('✅ Se liberó el material apartado de la cotización #'+cotizacionId);
+    window.dispatchEvent(new CustomEvent('inventory:updated'));
+  }catch(err){
+    if(err.message!=='SESION_EXPIRADA') alert('⚠️ La cotización quedó cancelada, pero no se pudo liberar el material: '+err.message);
+  }
 }
 function toggleDrop(i,e){
   if(e)e.stopPropagation();
@@ -863,9 +892,10 @@ function todasLasCotizaciones(){
   let landings=[];
   try{
     landings=Object.entries(localStorage)
-      .filter(([k])=>k.startsWith('coti_'))
+      .filter(([k])=>k.startsWith('coti_') && !k.startsWith('coti_ref_'))
       .map(([,v])=>{try{return JSON.parse(v)}catch(e){return null}})
-      .filter(Boolean);
+      // Los apuntadores no son cotizaciones: sólo dicen a cuál apuntan.
+      .filter(x=>x && x.__ref===undefined && x.id!==undefined);
   }catch(e){}
 
   const porId=new Map();
@@ -875,13 +905,30 @@ function todasLasCotizaciones(){
   return [...porId.values()].sort((a,b)=>new Date(b.date)-new Date(a.date));
 }
 
-/** ¿Esta cotización ya tiene una landing publicada? Devuelve su hash o null. */
+/**
+ * ¿Esta cotización ya tiene una landing publicada? Devuelve su hash o null.
+ *
+ * Índice inverso `coti_ref_<id> -> hash`, calcado de LINDERO.COTI
+ * (`landing-folio:<folio>`): búsqueda directa en vez de recorrer todo el
+ * almacenamiento. Se comprueba que el apuntador siga siendo coherente antes de
+ * reutilizarlo, igual que allá.
+ */
 function hashDeLanding(id){
   try{
+    const hash=localStorage.getItem('coti_ref_'+id);
+    if(hash && localStorage.getItem('coti_'+hash)) return hash;
+
+    // Landings viejas guardaban una COPIA completa. Se localizan y se les
+    // construye el índice para no volver a recorrer todo.
     for(const [k,v] of Object.entries(localStorage)){
-      if(!k.startsWith('coti_')) continue;
-      const q=JSON.parse(v);
-      if(q && String(q.id)===String(id)) return k.slice('coti_'.length);
+      if(!k.startsWith('coti_') || k.startsWith('coti_ref_')) continue;
+      const dato=JSON.parse(v);
+      const refId = dato && dato.__ref!==undefined ? dato.__ref : (dato&&dato.id);
+      if(String(refId)===String(id)){
+        const h=k.slice('coti_'.length);
+        localStorage.setItem('coti_ref_'+id,h);
+        return h;
+      }
     }
   }catch(e){}
   return null;
