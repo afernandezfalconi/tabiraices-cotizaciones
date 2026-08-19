@@ -4,6 +4,7 @@ import { handleAuditRequest } from './routes/audit';
 import { handleSettingsRequest } from './routes/settings';
 import { handleAuthRequest } from './routes/auth';
 import { handleUsuariosRequest } from './routes/usuarios';
+import { handleQuotesRequest } from './routes/quotes';
 import { AuthError } from './middleware/auth';
 /**
  * Orígenes autorizados. Antes esto era '*', lo que permitía a cualquier web
@@ -46,7 +47,12 @@ export default {
         }
         try {
             let response;
-            if (pathname === '/api/login' ||
+            if (pathname.startsWith('/landing/') || pathname.startsWith('/api/cotizaciones')) {
+                // La landing es pública a propósito: es el enlace que se manda al
+                // cliente. handleQuotesRequest exige sesión en todo lo demás.
+                response = await handleQuotesRequest(request, env.INVENTORY_KV, env.TABIRA_USUARIOS);
+            }
+            else if (pathname === '/api/login' ||
                 pathname === '/api/logout' ||
                 pathname === '/api/yo' ||
                 pathname === '/api/password') {

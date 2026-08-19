@@ -328,10 +328,9 @@ async function api(ruta, opciones={}){
 window.api=api; window.puede=puede;
 
 const BANK={cuenta:'1052 4608 508',clabe:'1376 2410 5246 0850 88',tarjeta:'4169 1614 8835 0645',bene:'Karen Estrella Ventura Ruiz',banco:'BanCoppel'};
-let quotes=[
-  {id:'0021',client:'Cristian Luna',project:'Fracc. Alvia',location:'Charro Seco',payment:'Efectivo',date:'2026-05-20',status:'paid',ivaRate:0,items:[{desc:'Tabique pesado',unit:8.30,qty:1000}]},
-  {id:'0022',client:'Roberto Méndez',project:'Casa habitación',location:'Col. Centro',payment:'Transferencia',date:'2026-05-19',status:'sent',ivaRate:16,items:[{desc:'Tabique rojo',unit:6.50,qty:500},{desc:'Tabique pesado',unit:8.30,qty:200}]},
-];
+// Copia local de lo que hay en el servidor. Se llena en el arranque.
+// (Aqui vivian dos cotizaciones de ejemplo escritas en duro; ya no hacen falta.)
+let quotes=[];
 let cq=null,view='list',dark=false,activeFilter='all';
 const LOGO_SRC=document.getElementById('logo-img')?.src||'';
 async function logout(){
@@ -340,9 +339,40 @@ async function logout(){
   try{ await api('/api/logout',{method:'POST'}); }catch(e){}
   cerrarSesionLocal();
 }
-function loadQuotes(){try{const saved=localStorage.getItem('tabiraices_quotes');return saved?JSON.parse(saved):quotes;}catch(e){return quotes;}}
-function saveQuotes(){try{localStorage.setItem('tabiraices_quotes',JSON.stringify(quotes));}catch(e){}}
-quotes=loadQuotes();
+/**
+ * Las cotizaciones viven en Cloudflare, no en este navegador.
+ *
+ * Antes se guardaban en localStorage: los enlaces que mandabas al cliente se
+ * veian vacios (la cotizacion solo existia en tu maquina), los datos no te
+ * seguian a otro dispositivo, y limpiar el navegador los borraba.
+ *
+ * `quotes` sigue siendo el arreglo en memoria que pintan las pantallas, pero
+ * ahora es una copia de lo que hay en el servidor.
+ */
+let cargando=false;
+
+async function cargarCotizaciones(){
+  if(cargando) return;
+  cargando=true;
+  try{
+    const d=await api('/api/cotizaciones?full=1');
+    quotes=(d.items||[]).map(c=>({...c, ivaRate:Number(c.ivaRate)||0, items:c.items||[]}));
+  }catch(e){
+    if(e.message!=='SESION_EXPIRADA') console.error('No se pudieron cargar las cotizaciones:', e.message);
+  }finally{ cargando=false; }
+}
+
+/** Persiste una cotizacion y refresca la copia local. */
+async function guardarCotizacion(c){
+  const guardada=await api('/api/cotizaciones',{method:'POST',body:JSON.stringify(c)});
+  const i=quotes.findIndex(q=>String(q.id)===String(guardada.id));
+  if(i>=0) quotes[i]=guardada; else quotes.unshift(guardada);
+  return guardada;
+}
+
+// Compatibilidad: habia llamadas sueltas a saveQuotes() por todo el archivo.
+// Ya no hay nada que guardar en local; cada cambio se persiste en su endpoint.
+function saveQuotes(){}
 function toggleTheme(){dark=!dark;document.body.classList.toggle('dark',dark);document.getElementById('theme-btn').textContent=dark?'☀️':'🌙';}
 
 // Admin Panel Functions
@@ -647,16 +677,38 @@ var module='nueva';
 function showView(v){view=v;render();}
 function showModule(m){module=m;view='list';activeFilter='all';render();}
 function setFilter(f){activeFilter=f;render();}
-function newQuote(){const ids=quotes.map(q=>parseInt(q.id)||0);const next=String((ids.length?Math.max(...ids):20)+1).padStart(4,'0');cq={id:next,client:'',project:'',location:'',payment:'',date:new Date().toISOString().split('T')[0],status:'pending',ivaRate:0,items:[{desc:'',unit:'',qty:''}]};view='form';render();}
+async function newQuote(){
+  let next;
+  try{ next=(await api('/api/cotizaciones/folio/siguiente')).folio; }
+  catch(e){ const ids=quotes.map(q=>parseInt(q.id)||0); next=String((ids.length?Math.max(...ids):20)+1).padStart(4,'0'); }
+  cq={id:next,client:'',project:'',location:'',payment:'',date:new Date().toISOString().split('T')[0],status:'pending',ivaRate:0,items:[{desc:'',unit:'',qty:''}]};view='form';render();}
 function editQ(i){cq=JSON.parse(JSON.stringify(quotes[i]));cq.ivaRate=cq.ivaRate||0;view='form';render();}
 function prevQ(i){cq=JSON.parse(JSON.stringify(quotes[i]));view='preview';render();}
-function delQ(i){if(confirm('¿Eliminar cotización #'+quotes[i].id+'?')){quotes.splice(i,1);saveQuotes();render();}}
+async function delQ(i){
+  const q=quotes[i]; if(!q) return;
+  if(!confirm('¿Eliminar cotización #'+q.id+'?')) return;
+  try{
+    await api('/api/cotizaciones/'+q.id,{method:'DELETE'});
+    quotes.splice(i,1); render();
+  }catch(e){
+    if(e.message!=='SESION_EXPIRADA') alert('No se pudo eliminar: '+e.message);
+  }
+}
 function readForm(){if(!cq)return;const g=id=>document.getElementById(id);['client','project','location','payment','date'].forEach(k=>{if(g('q-'+k))cq[k]=g('q-'+k).value;});if(g('q-iva'))cq.ivaRate=parseFloat(g('q-iva').value)||0;cq.items.forEach((item,i)=>['desc','unit','qty'].forEach(k=>{const el=g('item-'+k+'-'+i);if(el)item[k]=el.value;}));}
 function attachL(){['client','project','location','payment','date'].forEach(k=>{const el=document.getElementById('q-'+k);if(el)el.addEventListener('input',()=>{readForm();updTot();});});const iva=document.getElementById('q-iva');if(iva)iva.addEventListener('change',()=>{readForm();updTot();});cq&&cq.items.forEach((_,i)=>['desc','unit','qty'].forEach(k=>{const el=document.getElementById('item-'+k+'-'+i);if(el)el.addEventListener('input',()=>{readForm();updTot();});}));}
 function updTot(){const st=sub(cq.items),iv=st*(cq.ivaRate||0)/100,tot=st+iv;const s=id=>document.getElementById(id);if(s('t-sub'))s('t-sub').textContent=fmt(st);if(s('t-iva'))s('t-iva').textContent=fmt(iv);if(s('t-tot'))s('t-tot').textContent=fmt(tot);cq.items.forEach((_,i)=>{const u=parseFloat(document.getElementById('item-unit-'+i)?.value)||0,q=parseFloat(document.getElementById('item-qty-'+i)?.value)||0,el=document.getElementById('it-'+i);if(el)el.textContent=fmt(u*q);});}
 function addItem(){readForm();cq.items.push({desc:'',unit:'',qty:''});render();setTimeout(()=>attachL(),0);}
 function remItem(i){readForm();if(cq.items.length>1){cq.items.splice(i,1);render();setTimeout(()=>attachL(),0);}}
-function saveQ(){readForm();if(!cq.client.trim()){alert('Ingresa el nombre del cliente');return;}const idx=quotes.findIndex(q=>q.id===cq.id);if(idx>=0)quotes[idx]=cq;else quotes.unshift(cq);saveQuotes();cq=null;view='list';render();}
+async function saveQ(){
+  readForm();
+  if(!cq.client.trim()){alert('Ingresa el nombre del cliente');return;}
+  try{
+    await guardarCotizacion(cq);
+    cq=null; view='list'; render();
+  }catch(e){
+    if(e.message!=='SESION_EXPIRADA') alert('No se pudo guardar: '+e.message);
+  }
+}
 function genHash(){return Date.now().toString(36)+Math.random().toString(36).substr(2);}
 function shareQ(i){
   const q=quotes[i];
@@ -695,37 +747,27 @@ function verCotizacion(id){
 
 function compartirCotizacion(id){
   const idx=quotes.findIndex(q=>String(q.id)===String(id));
-  if(idx>=0){shareQ(idx);return;}
-  // Es una landing sin cotización viva detrás: se comparte su enlace existente.
-  const hash=hashDeLanding(id);
-  if(hash){
-    const url=window.location.origin+'/landing.html?id='+hash;
-    if(navigator.clipboard) navigator.clipboard.writeText(url).then(()=>alert('✅ Link copiado!\n\n'+url));
-    else alert('Link compartible:\n'+url);
-  }else{
-    alert('No se encontró la cotización #'+id);
-  }
+  if(idx<0){alert('No se encontró la cotización #'+id);return;}
+  shareQ(idx);
 }
 
-function shareLink(i){
-  const q=quotes[i];
-  // Reutiliza el enlace ya publicado en vez de crear otro.
-  // ⚠️ Antes generaba un hash nuevo en CADA clic, y como las pantallas listaban
-  // las landings junto a las cotizaciones, cada compartida creaba una tarjeta
-  // fantasma y sumaba su importe otra vez en el Centro.
-  // La landing resuelve el apuntador contra `tabiraices_quotes`, así que la
-  // cotización tiene que estar persistida. Las de ejemplo viven sólo en memoria
-  // hasta que algo las guarda: sin esto, el enlace apuntaría a la nada.
-  saveQuotes();
-  const hash=hashDeLanding(q.id)||genHash();
-  // Se guarda un APUNTADOR, no una copia (patrón de LINDERO.COTI). Así la
-  // landing siempre refleja la versión actual de la cotización, y no quedan
-  // objetos con forma de cotización que las pantallas confundan con otra más.
-  localStorage.setItem(`coti_${hash}`,JSON.stringify({__ref:String(q.id)}));
-  localStorage.setItem(`coti_ref_${q.id}`,hash);
-  const url=window.location.origin+'/landing.html?id='+hash;
-  const copied=navigator.clipboard?navigator.clipboard.writeText(url).then(()=>{alert('✅ Link copiado!\\n\\n'+url);if(confirm('¿Abrir en nueva pestaña?'))window.open(url)}):false;
-  if(!copied)alert('Link compartible:\\n'+url);
+async function shareLink(i){
+  const q=quotes[i]; if(!q) return;
+  try{
+    // El servidor reutiliza el enlace ya publicado: compartir dos veces da la
+    // MISMA URL, y la landing siempre refleja la version vigente.
+    const d=await api('/api/cotizaciones/'+q.id+'/compartir',{method:'POST'});
+    const url=API+'/landing/'+d.token;
+    if(navigator.clipboard){
+      await navigator.clipboard.writeText(url);
+      alert('✅ Link copiado!\n\n'+url);
+      if(confirm('¿Abrir en nueva pestaña?')) window.open(url);
+    }else{
+      alert('Link compartible:\n'+url);
+    }
+  }catch(e){
+    if(e.message!=='SESION_EXPIRADA') alert('No se pudo generar el enlace: '+e.message);
+  }
 }
 function footerHTML(){
   return`<div class="pft" style="border-radius:var(--r);margin-top:24px">
@@ -846,10 +888,14 @@ function renderPreview(){
   return`<div style="display:flex;gap:8px;margin-bottom:14px;align-items:center;flex-wrap:wrap"><button class="btn bgh bsm" onclick="showView('list')">← Volver</button>${i>=0?`<button id="pdfbtn-${i}" class="btn bn" onclick="downloadPDF(${i})" style="padding:9px 20px">Descargar PDF</button>`:''}</div><div class="pw"><div class="phd"><div style="display:flex;align-items:center;gap:11px">${bSVG(50)}<div><div style="font-size:22px;font-weight:900;letter-spacing:1.5px;color:#fff;line-height:1;text-transform:uppercase">Tabiraíces</div><div style="font-size:9px;color:var(--gold);font-weight:700;letter-spacing:.5px;text-transform:uppercase">La base de toda buena obra</div></div></div><div style="text-align:right"><div style="font-size:9px;color:rgba(255,255,255,.4);font-weight:700;text-transform:uppercase">Factura Nro.</div><div style="font-size:28px;font-weight:900;color:var(--gold)">#${q.id}</div><div style="font-size:10px;color:rgba(255,255,255,.6)">Fecha: ${q.date}</div></div></div><div class="pct"><div class="ci">Tel: <span>954 100 4104 / 954 138 9557</span></div><div class="ci">Dir: <span>Ventanilla Colotepec</span></div><div class="ci">Email: <span>bloquera.tabiraices@gmail.com</span></div></div><div class="pbdy"><div class="pcg"><div class="pcc"><div class="pcl">Cliente</div><div class="pcv">${q.client||'—'}</div></div><div class="pcc"><div class="pcl">Proyecto / Obra</div><div class="pcv">${q.project||'—'}</div></div><div class="pcc"><div class="pcl">Entrega en</div><div class="pcv">${q.location||'—'}</div></div></div><table class="ptbl"><thead><tr><th>Descripción</th><th>Precio Unitario</th><th>Cantidad</th><th>Total</th></tr></thead><tbody>${q.items.filter(it=>it.desc||it.qty).map(it=>`<tr><td>${it.desc||'—'}</td><td>${fmt(parseFloat(it.unit)||0)}</td><td>${parseInt(it.qty)||0}</td><td style="font-weight:800">${fmt((parseFloat(it.unit)||0)*(parseFloat(it.qty)||0))}</td></tr>`).join('')}</tbody></table><div class="ptots"><div class="ptb"><div class="ptr"><span style="color:var(--muted)">Subtotal</span><span style="font-weight:800">${fmt(st)}</span></div><div class="ptr"><span style="color:var(--muted)">IVA (${q.ivaRate||0}%)</span><span style="font-weight:800">${fmt(iv)}</span></div><div class="ptg"><span class="ptgl">TOTAL</span><span class="ptgv">${fmt(tot)}</span></div></div></div><div class="sa"><div style="font-size:12px;color:var(--muted)">Forma de pago: <strong style="color:var(--text)">${q.payment||'—'}</strong></div><div style="text-align:center"><div style="width:155px;border-top:1.5px solid var(--navy);padding-top:5px;font-size:10px;color:var(--muted)">${q.client||''}</div><div style="font-size:9px;color:var(--muted);margin-top:2px">Firma / Aceptación del cliente</div></div></div>${bankHTML()}</div>${footerHTML()}</div>`;}
 async function changeStatus(i,s,e){
   if(e)e.stopPropagation();
-  const anterior=quotes[i].status;
-  quotes[i].status=s;
-  saveQuotes();
+  const q=quotes[i]; if(!q) return;
+  const anterior=q.status;
+  q.status=s;
   render();
+  try{ await guardarCotizacion(q); }
+  catch(err){
+    if(err.message!=='SESION_EXPIRADA'){ q.status=anterior; render(); alert('No se pudo cambiar el estatus: '+err.message); return; }
+  }
   // Cancelar devuelve el material apartado: sin esto quedaba bloqueado hasta
   // que expirara el TTL de 24 h, sin forma de soltarlo.
   if(s==='cancelled' && anterior!=='cancelled') await liberarApartados(quotes[i].id);
@@ -889,49 +935,9 @@ document.addEventListener('click',()=>document.querySelectorAll('.st-drop').forE
  * es una foto del momento en que se compartió.
  */
 function todasLasCotizaciones(){
-  let landings=[];
-  try{
-    landings=Object.entries(localStorage)
-      .filter(([k])=>k.startsWith('coti_') && !k.startsWith('coti_ref_'))
-      .map(([,v])=>{try{return JSON.parse(v)}catch(e){return null}})
-      // Los apuntadores no son cotizaciones: sólo dicen a cuál apuntan.
-      .filter(x=>x && x.__ref===undefined && x.id!==undefined);
-  }catch(e){}
-
-  const porId=new Map();
-  landings.forEach(q=>{ if(q&&q.id!=null) porId.set(String(q.id),q); });
-  quotes.forEach(q=>{ if(q&&q.id!=null) porId.set(String(q.id),q); });
-
-  return [...porId.values()].sort((a,b)=>new Date(b.date)-new Date(a.date));
-}
-
-/**
- * ¿Esta cotización ya tiene una landing publicada? Devuelve su hash o null.
- *
- * Índice inverso `coti_ref_<id> -> hash`, calcado de LINDERO.COTI
- * (`landing-folio:<folio>`): búsqueda directa en vez de recorrer todo el
- * almacenamiento. Se comprueba que el apuntador siga siendo coherente antes de
- * reutilizarlo, igual que allá.
- */
-function hashDeLanding(id){
-  try{
-    const hash=localStorage.getItem('coti_ref_'+id);
-    if(hash && localStorage.getItem('coti_'+hash)) return hash;
-
-    // Landings viejas guardaban una COPIA completa. Se localizan y se les
-    // construye el índice para no volver a recorrer todo.
-    for(const [k,v] of Object.entries(localStorage)){
-      if(!k.startsWith('coti_') || k.startsWith('coti_ref_')) continue;
-      const dato=JSON.parse(v);
-      const refId = dato && dato.__ref!==undefined ? dato.__ref : (dato&&dato.id);
-      if(String(refId)===String(id)){
-        const h=k.slice('coti_'.length);
-        localStorage.setItem('coti_ref_'+id,h);
-        return h;
-      }
-    }
-  }catch(e){}
-  return null;
+  // Ya no se fusiona nada: el servidor es la unica fuente. Las landings son
+  // apuntadores en KV, no copias con forma de cotizacion.
+  return [...quotes].sort((a,b)=>new Date(b.date)-new Date(a.date));
 }
 
 function renderMisQuotes(){
@@ -1027,10 +1033,15 @@ window.renderCentroModule = function() {
 };
 
 // Inicializar después de que DOM esté listo
-if(document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => { render(); });
-} else {
+async function arrancar(){
+  render();                    // pinta la navegacion de inmediato
+  await cargarCotizaciones();  // y rellena cuando llegan del servidor
   render();
+}
+if(document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', arrancar);
+} else {
+  arrancar();
 }
 </script>
 
