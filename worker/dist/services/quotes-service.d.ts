@@ -55,7 +55,13 @@ export declare class QuotesService {
      * cargas parciales.
      */
     listarCompletas(soloDe?: string): Promise<Cotizacion[]>;
-    /** Siguiente folio disponible, con el formato 0001 que ya usa el negocio. */
+    /**
+     * Siguiente folio disponible, con el formato 0001 que usa el negocio.
+     *
+     * ⚠️ Arrancaba en 20 —heredado del código viejo, donde las dos cotizaciones
+     * de ejemplo eran #0021 y #0022—, así que la primera cotización real salía
+     * numerada #0021. Sin cotizaciones, la primera es #0001.
+     */
     siguienteFolio(): Promise<string>;
     guardar(datos: Partial<Cotizacion>, autor: {
         id: string;

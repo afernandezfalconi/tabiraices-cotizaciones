@@ -65,13 +65,19 @@ export class QuotesService {
             items = items.filter((c) => c.creado_por === soloDe);
         return items.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     }
-    /** Siguiente folio disponible, con el formato 0001 que ya usa el negocio. */
+    /**
+     * Siguiente folio disponible, con el formato 0001 que usa el negocio.
+     *
+     * ⚠️ Arrancaba en 20 —heredado del código viejo, donde las dos cotizaciones
+     * de ejemplo eran #0021 y #0022—, así que la primera cotización real salía
+     * numerada #0021. Sin cotizaciones, la primera es #0001.
+     */
     async siguienteFolio() {
         const lista = await this.kv.list({ prefix: COTI, limit: 500 });
         const numeros = lista.keys
             .map((k) => parseInt(k.name.slice(COTI.length), 10))
             .filter((n) => Number.isFinite(n));
-        const max = numeros.length ? Math.max(...numeros) : 20;
+        const max = numeros.length ? Math.max(...numeros) : 0;
         return String(max + 1).padStart(4, '0');
     }
     async guardar(datos, autor) {

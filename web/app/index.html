@@ -682,8 +682,9 @@ function showModule(m){module=m;view='list';activeFilter='all';render();}
 function setFilter(f){activeFilter=f;render();}
 async function newQuote(){
   let next;
+  if(!catalogo.length) await cargarCatalogo();
   try{ next=(await api('/api/cotizaciones/folio/siguiente')).folio; }
-  catch(e){ const ids=quotes.map(q=>parseInt(q.id)||0); next=String((ids.length?Math.max(...ids):20)+1).padStart(4,'0'); }
+  catch(e){ const ids=quotes.map(q=>parseInt(q.id)||0); next=String((ids.length?Math.max(...ids):0)+1).padStart(4,'0'); }
   cq={id:next,client:'',project:'',location:'',payment:'',date:new Date().toISOString().split('T')[0],status:'pending',ivaRate:0,items:[{desc:'',unit:'',qty:''}]};
   // Sin fijar el módulo el botón no hacía nada fuera de la primera pestaña:
   // render() decide por `module`, y ponía `view='form'` sin salir de Centro
@@ -692,7 +693,14 @@ async function newQuote(){
   view='form';
   render();
 }
-function editQ(i){cq=JSON.parse(JSON.stringify(quotes[i]));cq.ivaRate=cq.ivaRate||0;view='form';render();}
+async function editQ(i){
+  if(!catalogo.length) await cargarCatalogo();
+  cq=JSON.parse(JSON.stringify(quotes[i]));
+  cq.ivaRate=cq.ivaRate||0;
+  module='nueva';
+  view='form';
+  render();
+}
 function prevQ(i){cq=JSON.parse(JSON.stringify(quotes[i]));view='preview';render();}
 async function delQ(i){
   const q=quotes[i]; if(!q) return;
@@ -705,6 +713,52 @@ async function delQ(i){
   }
 }
 function readForm(){if(!cq)return;const g=id=>document.getElementById(id);['client','project','location','payment','date'].forEach(k=>{if(g('q-'+k))cq[k]=g('q-'+k).value;});if(g('q-iva'))cq.ivaRate=parseFloat(g('q-iva').value)||0;cq.items.forEach((item,i)=>['desc','unit','qty'].forEach(k=>{const el=g('item-'+k+'-'+i);if(el)item[k]=el.value;}));}
+/**
+ * Catálogo para cotizar: son los productos dados de alta en Centro.
+ *
+ * Antes la descripción era texto libre, así que cada quien escribía el nombre
+ * como quería y el precio a mano. Ahora se eligen del inventario y el precio de
+ * venta se rellena solo.
+ */
+let catalogo=[];
+
+async function cargarCatalogo(){
+  try{
+    const d=await api('/api/inventory');
+    catalogo=(d.products||[]).map(p=>({id:p.id,nombre:p.nombre,precio:p.precio_venta}));
+  }catch(e){
+    if(e.message!=='SESION_EXPIRADA') console.error('No se pudo cargar el catálogo:', e.message);
+  }
+}
+
+const esProductoDelCatalogo=(desc)=>catalogo.some(p=>p.nombre===desc);
+
+function opcionesProducto(desc){
+  const enCatalogo=esProductoDelCatalogo(desc);
+  const otro=desc && !enCatalogo;
+  return '<option value="">Selecciona un producto…</option>'
+    + catalogo.map(p=>`<option value="${p.nombre.replace(/"/g,'&quot;')}" ${p.nombre===desc?'selected':''}>${p.nombre} — ${fmtN(p.precio)}</option>`).join('')
+    + `<option value="__otro__" ${otro?'selected':''}>✏️ Otro concepto (flete, maniobra…)</option>`;
+}
+
+/** Al elegir del catálogo se rellena el precio de venta; "Otro" abre el texto. */
+function elegirProducto(i,valor){
+  readForm();
+  const campo=document.getElementById('item-desc-'+i);
+  if(valor==='__otro__'){
+    cq.items[i].desc='';
+    if(campo){campo.style.display='';campo.value='';campo.focus();}
+    updTot();
+    return;
+  }
+  const p=catalogo.find(x=>x.nombre===valor);
+  cq.items[i].desc=valor;
+  if(p) cq.items[i].unit=p.precio;
+  if(campo) campo.style.display='none';
+  render();
+  setTimeout(()=>attachL(),0);
+}
+
 function attachL(){['client','project','location','payment','date'].forEach(k=>{const el=document.getElementById('q-'+k);if(el)el.addEventListener('input',()=>{readForm();updTot();});});const iva=document.getElementById('q-iva');if(iva)iva.addEventListener('change',()=>{readForm();updTot();});cq&&cq.items.forEach((_,i)=>['desc','unit','qty'].forEach(k=>{const el=document.getElementById('item-'+k+'-'+i);if(el)el.addEventListener('input',()=>{readForm();updTot();});}));}
 function updTot(){const st=sub(cq.items),iv=st*(cq.ivaRate||0)/100,tot=st+iv;const s=id=>document.getElementById(id);if(s('t-sub'))s('t-sub').textContent=fmt(st);if(s('t-iva'))s('t-iva').textContent=fmt(iv);if(s('t-tot'))s('t-tot').textContent=fmt(tot);cq.items.forEach((_,i)=>{const u=parseFloat(document.getElementById('item-unit-'+i)?.value)||0,q=parseFloat(document.getElementById('item-qty-'+i)?.value)||0,el=document.getElementById('it-'+i);if(el)el.textContent=fmt(u*q);});}
 function addItem(){readForm();cq.items.push({desc:'',unit:'',qty:''});render();setTimeout(()=>attachL(),0);}
@@ -892,7 +946,13 @@ function renderForm(){
             <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
             Folio automático · consecutivo
           </div>
-          <input id="q-date" type="date" class="fc" style="width:136px;font-size:12px" value="${q.date}"/></div></div><hr class="dv"/><div class="fg2"><div class="fg"><label class="fl">Cliente</label><input id="q-client" class="fc" placeholder="Nombre completo" value="${q.client}"/></div><div class="fg"><label class="fl">Forma de Pago</label><input id="q-payment" class="fc" placeholder="Efectivo, transferencia…" value="${q.payment}"/></div><div class="fg"><label class="fl">Proyecto / Obra</label><input id="q-project" class="fc" placeholder="Nombre del proyecto" value="${q.project}"/></div><div class="fg"><label class="fl">Ubicación de Entrega</label><input id="q-location" class="fc" placeholder="Colonia, calle…" value="${q.location}"/></div></div><hr class="dv"/><div class="ih"><div>Descripción</div><div>Precio Unit.</div><div>Cantidad</div><div style="text-align:right">Total</div><div></div></div>${q.items.map((item,i)=>`<div class="ir"><input id="item-desc-${i}" placeholder="Tabique pesado…" value="${item.desc}"/><input id="item-unit-${i}" type="number" placeholder="0.00" value="${item.unit}" step="0.01" min="0"/><input id="item-qty-${i}" type="number" placeholder="0" value="${item.qty}" min="0"/><div class="it" id="it-${i}">${fmt((parseFloat(item.unit)||0)*(parseFloat(item.qty)||0))}</div><button class="dbtn" onclick="remItem(${i})">×</button></div>`).join('')}<button class="ab" onclick="addItem()">+ Agregar producto</button><div style="display:flex;align-items:center;gap:10px;margin-top:13px"><label class="fl" style="white-space:nowrap">IVA:</label><select id="q-iva" class="fc" style="width:175px"><option value="0" ${(q.ivaRate||0)==0?'selected':''}>0% — Sin IVA</option><option value="16" ${(q.ivaRate||0)==16?'selected':''}>16% — IVA estándar</option></select></div><div class="tb"><div class="tr"><span class="tl">Subtotal</span><span class="tv" id="t-sub">${fmt(st)}</span></div><div class="tr"><span class="tl">IVA (${q.ivaRate||0}%)</span><span class="tv" id="t-iva">${fmt(iv)}</span></div><div class="tr g"><span class="tl">TOTAL</span><span class="tv" id="t-tot">${fmt(tot)}</span></div></div></div></div>`;}
+          <input id="q-date" type="date" class="fc" style="width:136px;font-size:12px" value="${q.date}"/></div></div><hr class="dv"/><div class="fg2"><div class="fg"><label class="fl">Cliente</label><input id="q-client" class="fc" placeholder="Nombre completo" value="${q.client}"/></div><div class="fg"><label class="fl">Forma de Pago</label><input id="q-payment" class="fc" placeholder="Efectivo, transferencia…" value="${q.payment}"/></div><div class="fg"><label class="fl">Proyecto / Obra</label><input id="q-project" class="fc" placeholder="Nombre del proyecto" value="${q.project}"/></div><div class="fg"><label class="fl">Ubicación de Entrega</label><input id="q-location" class="fc" placeholder="Colonia, calle…" value="${q.location}"/></div></div><hr class="dv"/><div class="ih"><div>Descripción</div><div>Precio Unit.</div><div>Cantidad</div><div style="text-align:right">Total</div><div></div></div>${q.items.map((item,i)=>`<div class="ir"><div style="display:flex;flex-direction:column;gap:4px">
+  <select id="item-sel-${i}" onchange="elegirProducto(${i},this.value)" style="width:100%;padding:8px;border:1.5px solid var(--inp-bd);border-radius:8px;background:var(--inp);color:var(--text);font-family:Montserrat,sans-serif;font-size:13px">
+    ${opcionesProducto(item.desc)}
+  </select>
+  <input id="item-desc-${i}" placeholder="Escribe el concepto…" value="${item.desc}"
+         style="${esProductoDelCatalogo(item.desc)?'display:none':''}"/>
+</div><input id="item-unit-${i}" type="number" placeholder="0.00" value="${item.unit}" step="0.01" min="0"/><input id="item-qty-${i}" type="number" placeholder="0" value="${item.qty}" min="0"/><div class="it" id="it-${i}">${fmt((parseFloat(item.unit)||0)*(parseFloat(item.qty)||0))}</div><button class="dbtn" onclick="remItem(${i})">×</button></div>`).join('')}<button class="ab" onclick="addItem()">+ Agregar producto</button><div style="display:flex;align-items:center;gap:10px;margin-top:13px"><label class="fl" style="white-space:nowrap">IVA:</label><select id="q-iva" class="fc" style="width:175px"><option value="0" ${(q.ivaRate||0)==0?'selected':''}>0% — Sin IVA</option><option value="16" ${(q.ivaRate||0)==16?'selected':''}>16% — IVA estándar</option></select></div><div class="tb"><div class="tr"><span class="tl">Subtotal</span><span class="tv" id="t-sub">${fmt(st)}</span></div><div class="tr"><span class="tl">IVA (${q.ivaRate||0}%)</span><span class="tv" id="t-iva">${fmt(iv)}</span></div><div class="tr g"><span class="tl">TOTAL</span><span class="tv" id="t-tot">${fmt(tot)}</span></div></div></div></div>`;}
 function renderPreview(){
   const q=cq;const st=sub(q.items),iv=st*(q.ivaRate||0)/100,tot=st+iv;const i=quotes.findIndex(x=>x.id===q.id);
   return`<div style="display:flex;gap:8px;margin-bottom:14px;align-items:center;flex-wrap:wrap"><button class="btn bgh bsm" onclick="showView('list')">← Volver</button>${i>=0?`<button id="pdfbtn-${i}" class="btn bn" onclick="downloadPDF(${i})" style="padding:9px 20px">Descargar PDF</button>`:''}</div><div class="pw"><div class="phd"><div style="display:flex;align-items:center;gap:11px">${bSVG(50)}<div><div style="font-size:22px;font-weight:900;letter-spacing:1.5px;color:#fff;line-height:1;text-transform:uppercase">Tabiraíces</div><div style="font-size:9px;color:var(--gold);font-weight:700;letter-spacing:.5px;text-transform:uppercase">La base de toda buena obra</div></div></div><div style="text-align:right"><div style="font-size:9px;color:rgba(255,255,255,.4);font-weight:700;text-transform:uppercase">Factura Nro.</div><div style="font-size:28px;font-weight:900;color:var(--gold)">#${q.id}</div><div style="font-size:10px;color:rgba(255,255,255,.6)">Fecha: ${q.date}</div></div></div><div class="pct"><div class="ci">Tel: <span>954 100 4104 / 954 138 9557</span></div><div class="ci">Dir: <span>Ventanilla Colotepec</span></div><div class="ci">Email: <span>bloquera.tabiraices@gmail.com</span></div></div><div class="pbdy"><div class="pcg"><div class="pcc"><div class="pcl">Cliente</div><div class="pcv">${q.client||'—'}</div></div><div class="pcc"><div class="pcl">Proyecto / Obra</div><div class="pcv">${q.project||'—'}</div></div><div class="pcc"><div class="pcl">Entrega en</div><div class="pcv">${q.location||'—'}</div></div></div><table class="ptbl"><thead><tr><th>Descripción</th><th>Precio Unitario</th><th>Cantidad</th><th>Total</th></tr></thead><tbody>${q.items.filter(it=>it.desc||it.qty).map(it=>`<tr><td>${it.desc||'—'}</td><td>${fmt(parseFloat(it.unit)||0)}</td><td>${parseInt(it.qty)||0}</td><td style="font-weight:800">${fmt((parseFloat(it.unit)||0)*(parseFloat(it.qty)||0))}</td></tr>`).join('')}</tbody></table><div class="ptots"><div class="ptb"><div class="ptr"><span style="color:var(--muted)">Subtotal</span><span style="font-weight:800">${fmt(st)}</span></div><div class="ptr"><span style="color:var(--muted)">IVA (${q.ivaRate||0}%)</span><span style="font-weight:800">${fmt(iv)}</span></div><div class="ptg"><span class="ptgl">TOTAL</span><span class="ptgv">${fmt(tot)}</span></div></div></div><div class="sa"><div style="font-size:12px;color:var(--muted)">Forma de pago: <strong style="color:var(--text)">${q.payment||'—'}</strong></div><div style="text-align:center"><div style="width:155px;border-top:1.5px solid var(--navy);padding-top:5px;font-size:10px;color:var(--muted)">${q.client||''}</div><div style="font-size:9px;color:var(--muted);margin-top:2px">Firma / Aceptación del cliente</div></div></div>${bankHTML()}</div>${footerHTML()}</div>`;}
@@ -1037,7 +1097,7 @@ window.renderCentroModule = function() {
 // Inicializar después de que DOM esté listo
 async function arrancar(){
   render();                    // pinta la navegacion de inmediato
-  await cargarCotizaciones();  // y rellena cuando llegan del servidor
+  await Promise.all([cargarCotizaciones(), cargarCatalogo()]);
   render();
 }
 if(document.readyState === 'loading') {
