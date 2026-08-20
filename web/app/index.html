@@ -218,7 +218,10 @@ hr.dv{border:none;border-top:1.5px solid var(--div);margin:16px 0}
   <div class="nav-r">
     <button class="tog" id="theme-btn" onclick="toggleTheme()" title="Cambiar tema">🌙</button>
     <button class="btn bgh bsm" onclick="logout()" title="Cerrar sesión">🚪 Salir</button>
-    <button class="btn bg bsm" onclick="showView('list')" style="cursor:pointer;">← Cotizaciones</button>
+    <!-- Aquí había un botón "← Cotizaciones" que llamaba a showView('list').
+         Sólo cambiaba `view`, y las pestañas Mis/Inventario/Centro no miran esa
+         variable: no hacía nada en 3 de 4 pestañas, y en la cuarta el formulario
+         ya trae su propio "← Volver". -->
     <button class="btn bg bsm" onclick="newQuote()">+ Nueva Cotización</button>
   </div>
 </nav>
@@ -681,7 +684,14 @@ async function newQuote(){
   let next;
   try{ next=(await api('/api/cotizaciones/folio/siguiente')).folio; }
   catch(e){ const ids=quotes.map(q=>parseInt(q.id)||0); next=String((ids.length?Math.max(...ids):20)+1).padStart(4,'0'); }
-  cq={id:next,client:'',project:'',location:'',payment:'',date:new Date().toISOString().split('T')[0],status:'pending',ivaRate:0,items:[{desc:'',unit:'',qty:''}]};view='form';render();}
+  cq={id:next,client:'',project:'',location:'',payment:'',date:new Date().toISOString().split('T')[0],status:'pending',ivaRate:0,items:[{desc:'',unit:'',qty:''}]};
+  // Sin fijar el módulo el botón no hacía nada fuera de la primera pestaña:
+  // render() decide por `module`, y ponía `view='form'` sin salir de Centro
+  // o Inventario.
+  module='nueva';
+  view='form';
+  render();
+}
 function editQ(i){cq=JSON.parse(JSON.stringify(quotes[i]));cq.ivaRate=cq.ivaRate||0;view='form';render();}
 function prevQ(i){cq=JSON.parse(JSON.stringify(quotes[i]));view='preview';render();}
 async function delQ(i){
@@ -940,14 +950,10 @@ function todasLasCotizaciones(){
   return [...quotes].sort((a,b)=>new Date(b.date)-new Date(a.date));
 }
 
-function renderMisQuotes(){
-  let filtered=todasLasCotizaciones();
-  if(!filtered.length)return`<div class="empty-state"><div style="font-size:60px">📋</div><p style="margin-top:10px;color:var(--muted);font-size:14px">No hay cotizaciones yet</p></div>`;
-  const stats={total:filtered.length,paid:filtered.filter(q=>q.status==='paid').length,sent:filtered.filter(q=>q.status==='sent').length,pending:filtered.filter(q=>!q.status||q.status==='pending').length};
-  const filtered2=activeFilter==='all'?filtered:filtered.filter(q=>{if(activeFilter==='paid')return q.status==='paid';if(activeFilter==='sent')return q.status==='sent';return!q.status||q.status==='pending'});
-  return`<div class="mis-cont"><div class="mis-stats"><div class="stat-card"><div class="stat-num" style="color:var(--gold)">${stats.total}</div><div class="stat-label">Total</div></div><div class="stat-card"><div class="stat-num" style="color:#10b981">${stats.paid}</div><div class="stat-label">Pagadas</div></div><div class="stat-card"><div class="stat-num" style="color:#3b82f6">${stats.sent}</div><div class="stat-label">Enviadas</div></div><div class="stat-card"><div class="stat-num" style="color:#f59e0b">${stats.pending}</div><div class="stat-label">Pendientes</div></div></div><div class="filter-bar"><button class="filter-btn ${activeFilter==='all'?'active':''}" onclick="setFilter('all')">Todas</button><button class="filter-btn ${activeFilter==='paid'?'active':''}" onclick="setFilter('paid')">Pagadas</button><button class="filter-btn ${activeFilter==='sent'?'active':''}" onclick="setFilter('sent')">Enviadas</button><button class="filter-btn ${activeFilter==='pending'?'active':''}" onclick="setFilter('pending')">Pendientes</button></div><div class="quotes-grid">${filtered2.map((q,idx)=>{const paid=q.comprobante?'✅':'—';return`<div class="quote-card"><div class="quote-header"><div><div class="quote-id">#${q.id}</div><div class="quote-date">${q.date}</div></div><div class="quote-status-badge" style="background:${q.status==='paid'?'#d1fae5':q.status==='sent'?'#dbeafe':'#fef3c7'};color:${q.status==='paid'?'#065f46':q.status==='sent'?'#0c4a6e':'#92400e'}">
-${q.status==='paid'?'💳 PAGADA':q.status==='sent'?'📤 ENVIADA':'⏳ PENDIENTE'}</div></div><div class="quote-details"><div><span class="quote-label">Cliente</span><div style="font-weight:700;font-size:14px">${q.client}</div></div><div style="margin-top:10px"><span class="quote-label">Proyecto</span><div style="font-weight:700;font-size:14px">${q.project}</div></div></div><div class="quote-total">TOTAL: <strong>${fmt(q.items.reduce((s,it)=>s+(parseFloat(it.unit)||0)*(parseFloat(it.qty)||0),0)*(1+(parseFloat(q.ivaRate)||0)/100))}</strong></div><div class="quote-footer"><div style="display:flex;gap:8px"><button class="btn bg" style="flex:1;padding:8px 12px;font-size:12px" onclick="verCotizacion('${q.id}')">👁 Ver</button><button class="btn bn" style="flex:1;padding:8px 12px;font-size:12px;color:#fff" onclick="compartirCotizacion('${q.id}')">🔗 Compartir</button></div><div style="font-size:11px;color:var(--muted);margin-top:8px">Comprobante: ${paid}</div></div></div>`}).join('')}</div></div>`;
-}
+/* renderMisQuotes() eliminada: repetia el mismo tablero y la misma lista que
+   la pestaña Cotizaciones, con menos acciones. Dos listados casi identicos
+   confundian mas de lo que ayudaban. */
+
 function renderCentro(){
   // Misma fuente deduplicada: antes cada landing compartida sumaba su importe
   // otra vez, inflando los ingresos reportados.
@@ -998,8 +1004,7 @@ function render(){
   const app=document.getElementById('app');
   guardarPanelAdmin(); // rescatar el panel antes de vaciar #app
   const nav=`<div class="tabs-nav">
-    <button class="tab-btn ${module==='nueva'?'active':''}" onclick="showModule('nueva')">➕ Nueva Cotización</button>
-    <button class="tab-btn ${module==='mis'?'active':''}" onclick="showModule('mis')">📋 Mis Cotizaciones</button>
+    <button class="tab-btn ${module==='nueva'?'active':''}" onclick="showModule('nueva')">📋 Cotizaciones</button>
     <button class="tab-btn ${module==='inventario'?'active':''}" onclick="showModule('inventario')">📦 Inventario</button>
     <button class="tab-btn ${module==='centro'?'active':''}" onclick="showModule('centro')">🏢 Centro</button>
   </div>`;
@@ -1008,9 +1013,6 @@ function render(){
     if(view==='list')content=renderList();
     else if(view==='form'){content=renderForm();setTimeout(()=>attachL(),0);}
     else if(view==='preview')content=renderPreview();
-    app.innerHTML=nav+content;
-  }else if(module==='mis'){
-    content=renderMisQuotes();
     app.innerHTML=nav+content;
   }else if(module==='inventario'){
     app.innerHTML=nav;
