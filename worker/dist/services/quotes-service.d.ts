@@ -18,6 +18,8 @@ export interface Cotizacion {
     creado_por_nombre: string;
     creado_en: string;
     actualizado_en: string;
+    /** Sólo de entrada: pide al servidor que asigne folio. No se persiste. */
+    nueva?: boolean;
 }
 /** Lo que se guarda en la metadata de la clave, para listar sin N lecturas. */
 export interface CotizacionResumen {
@@ -63,6 +65,16 @@ export declare class QuotesService {
      * numerada #0021. Sin cotizaciones, la primera es #0001.
      */
     siguienteFolio(): Promise<string>;
+    /**
+     * Primer folio libre de verdad.
+     *
+     * ⚠️ `siguienteFolio()` se apoya en `kv.list()`, que es eventualmente
+     * consistente: tras crear la #0001 seguía proponiendo 0001. Con dos
+     * vendedores cotizando a la vez, ambos recibían el mismo folio y el segundo
+     * SOBRESCRIBÍA al primero. Aquí se sondea la clave concreta con `get`, que sí
+     * refleja lo recién escrito, hasta dar con una libre.
+     */
+    private folioLibre;
     guardar(datos: Partial<Cotizacion>, autor: {
         id: string;
         nombre: string;

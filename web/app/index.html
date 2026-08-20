@@ -368,6 +368,9 @@ async function cargarCotizaciones(){
 /** Persiste una cotizacion y refresca la copia local. */
 async function guardarCotizacion(c){
   const guardada=await api('/api/cotizaciones',{method:'POST',body:JSON.stringify(c)});
+  // El servidor asigna el folio definitivo; a partir de aqui ya no es nueva.
+  delete c.nueva;
+  if(cq && String(cq.id)===String(c.id)) cq.id=guardada.id;
   const i=quotes.findIndex(q=>String(q.id)===String(guardada.id));
   if(i>=0) quotes[i]=guardada; else quotes.unshift(guardada);
   return guardada;
@@ -685,7 +688,7 @@ async function newQuote(){
   if(!catalogo.length) await cargarCatalogo();
   try{ next=(await api('/api/cotizaciones/folio/siguiente')).folio; }
   catch(e){ const ids=quotes.map(q=>parseInt(q.id)||0); next=String((ids.length?Math.max(...ids):0)+1).padStart(4,'0'); }
-  cq={id:next,client:'',project:'',location:'',payment:'',date:new Date().toISOString().split('T')[0],status:'pending',ivaRate:0,items:[{desc:'',unit:'',qty:''}]};
+  cq={id:next,client:'',project:'',location:'',payment:'',date:new Date().toISOString().split('T')[0],status:'pending',ivaRate:0,items:[{desc:'',unit:'',qty:''}],nueva:true};
   // Sin fijar el módulo el botón no hacía nada fuera de la primera pestaña:
   // render() decide por `module`, y ponía `view='form'` sin salir de Centro
   // o Inventario.
@@ -729,6 +732,17 @@ async function cargarCatalogo(){
   }catch(e){
     if(e.message!=='SESION_EXPIRADA') console.error('No se pudo cargar el catálogo:', e.message);
   }
+}
+
+/** Formas de pago que acepta el negocio. */
+const FORMAS_PAGO=['Depósito','Efectivo','Pago con TDC','Pago con TDD','Transferencia'];
+
+function opcionesPago(actual){
+  const conocida=FORMAS_PAGO.includes(actual);
+  return '<option value="">Selecciona…</option>'
+    + FORMAS_PAGO.map(p=>`<option value="${p}" ${p===actual?'selected':''}>${p}</option>`).join('')
+    // Las cotizaciones viejas traian texto libre: se conserva para no perderlo.
+    + (actual && !conocida ? `<option value="${String(actual).replace(/"/g,'&quot;')}" selected>${actual}</option>` : '');
 }
 
 const esProductoDelCatalogo=(desc)=>catalogo.some(p=>p.nombre===desc);
@@ -946,7 +960,7 @@ function renderForm(){
             <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
             Folio automático · consecutivo
           </div>
-          <input id="q-date" type="date" class="fc" style="width:136px;font-size:12px" value="${q.date}"/></div></div><hr class="dv"/><div class="fg2"><div class="fg"><label class="fl">Cliente</label><input id="q-client" class="fc" placeholder="Nombre completo" value="${q.client}"/></div><div class="fg"><label class="fl">Forma de Pago</label><input id="q-payment" class="fc" placeholder="Efectivo, transferencia…" value="${q.payment}"/></div><div class="fg"><label class="fl">Proyecto / Obra</label><input id="q-project" class="fc" placeholder="Nombre del proyecto" value="${q.project}"/></div><div class="fg"><label class="fl">Ubicación de Entrega</label><input id="q-location" class="fc" placeholder="Colonia, calle…" value="${q.location}"/></div></div><hr class="dv"/><div class="ih"><div>Descripción</div><div>Precio Unit.</div><div>Cantidad</div><div style="text-align:right">Total</div><div></div></div>${q.items.map((item,i)=>`<div class="ir"><div style="display:flex;flex-direction:column;gap:4px">
+          <input id="q-date" type="date" class="fc" style="width:136px;font-size:12px" value="${q.date}"/></div></div><hr class="dv"/><div class="fg2"><div class="fg"><label class="fl">Cliente</label><input id="q-client" class="fc" placeholder="Nombre completo" value="${q.client}"/></div><div class="fg"><label class="fl">Forma de Pago</label><select id="q-payment" class="fc">${opcionesPago(q.payment)}</select></div><div class="fg"><label class="fl">Proyecto / Obra</label><input id="q-project" class="fc" placeholder="Nombre del proyecto" value="${q.project}"/></div><div class="fg"><label class="fl">Ubicación de Entrega</label><input id="q-location" class="fc" placeholder="Colonia, calle…" value="${q.location}"/></div></div><hr class="dv"/><div class="ih"><div>Descripción</div><div>Precio Unit.</div><div>Cantidad</div><div style="text-align:right">Total</div><div></div></div>${q.items.map((item,i)=>`<div class="ir"><div style="display:flex;flex-direction:column;gap:4px">
   <select id="item-sel-${i}" onchange="elegirProducto(${i},this.value)" style="width:100%;padding:8px;border:1.5px solid var(--inp-bd);border-radius:8px;background:var(--inp);color:var(--text);font-family:Montserrat,sans-serif;font-size:13px">
     ${opcionesProducto(item.desc)}
   </select>
