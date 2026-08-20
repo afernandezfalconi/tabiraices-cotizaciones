@@ -201,6 +201,81 @@ hr.dv{border:none;border-top:1.5px solid var(--div);margin:16px 0}
 .stat-value{font-size:20px;font-weight:900;color:var(--text)}
 .centro-table{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);overflow-x:auto}
 .empty-state{text-align:center;padding:60px 20px;background:var(--surface);border-radius:var(--r);border:1.5px dashed var(--border);color:var(--muted)}
+
+/* ============================================================================
+   CELULAR  —  iOS Safari y Android Chrome
+   El cotizador se construyo sin una sola media query: en un telefono de 375px
+   las 4 tarjetas de totales quedaban en ~77px cada una y la fila de productos
+   apretaba 5 columnas. Se usa en obra, desde el celular, casi siempre.
+   ========================================================================= */
+
+/* iOS gira el telefono y agranda el texto por su cuenta si no se le dice esto. */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+
+/* Nada debe empujar la pagina a lo ancho. */
+body{overflow-x:hidden}
+
+/* Las tablas anchas se desplazan dentro de su caja, no arrastran la pagina. */
+.tabla-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+@media (max-width:768px){
+  /* Cuatro totales no caben: de dos en dos. */
+  .stats{grid-template-columns:repeat(2,1fr);gap:8px}
+  .sv{font-size:20px}
+
+  /* Campos del formulario, uno por renglon. */
+  .fg2{grid-template-columns:1fr;gap:10px}
+
+  /* La fila de producto deja de ser una rejilla de 5 columnas y se apila:
+     el concepto ocupa todo el ancho, y debajo precio, cantidad y total. */
+  .ih{display:none}
+  .ir{
+    grid-template-columns:1fr 1fr 1fr 40px;
+    grid-template-areas:"desc desc desc desc" "unit qty tot del";
+    gap:8px;padding:12px 0
+  }
+  .ir>*:nth-child(1){grid-area:desc}
+  .ir>*:nth-child(2){grid-area:unit}
+  .ir>*:nth-child(3){grid-area:qty}
+  .ir>*:nth-child(4){grid-area:tot;text-align:right;align-self:center}
+  .ir>*:nth-child(5){grid-area:del;justify-self:end}
+  /* Sin encabezados de columna hace falta decir que es cada campo. */
+  .ir input[id^="item-unit"]::placeholder{content:"Precio"}
+
+  .page{padding:16px 12px}
+  .nav{padding:0 12px;height:auto;min-height:56px;flex-wrap:wrap;gap:6px;padding-top:8px;padding-bottom:8px}
+  .nav-logo{height:38px}
+  .nav-txt .nt{font-size:14px}
+  .nav-txt .ns{font-size:7.5px}
+
+  /* Las pestanas se desplazan de lado en vez de romperse en dos renglones. */
+  .tabs-nav{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .tabs-nav::-webkit-scrollbar{display:none}
+  .tab-btn{white-space:nowrap;flex-shrink:0}
+
+  /* Objetivo tactil comodo: los dedos no son punteros de raton. */
+  .btn{min-height:40px;padding:9px 14px}
+  .dbtn{width:40px;height:40px}
+  .tog{width:40px;height:40px}
+
+  /* ⚠️ iOS Safari hace ZOOM al enfocar un campo con fuente menor a 16px.
+     Tocabas "Cliente" y la pantalla se acercaba sola. */
+  .fc,input,select,textarea{font-size:16px}
+  .ir input{font-size:16px;padding:10px 8px}
+}
+
+@media (max-width:420px){
+  /* En pantallas chicas hasta dos totales aprietan. */
+  .stats{grid-template-columns:1fr}
+  .qca{gap:6px}
+  .qca .btn{flex:1 1 auto}
+}
+
+/* Muescas y barra inferior de gestos (iPhone X en adelante). */
+@supports(padding:max(0px)){
+  .nav{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}
+  body{padding-bottom:env(safe-area-inset-bottom)}
+}
 </style>
 </head>
 <body class="dark">

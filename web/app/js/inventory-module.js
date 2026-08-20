@@ -72,8 +72,10 @@ function renderInventoryModule() {
 
       ${adminSection}
 
-      <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;">
-        <table style="width: 100%; border-collapse: collapse;">
+      <!-- overflow-x: la tabla tiene 6 columnas y en un celular se desbordaba
+           arrastrando toda la pagina de lado. Ahora se desplaza ella sola. -->
+      <div class="tabla-scroll" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px;">
+        <table style="width: 100%; border-collapse: collapse; min-width: 520px;">
           <thead>
             <tr style="background: var(--navy); color: #fff;">
               <th style="padding: 12px 16px; text-align: left; font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Producto</th>

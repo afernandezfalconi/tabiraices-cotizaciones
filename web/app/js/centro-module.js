@@ -62,8 +62,8 @@ function renderCentroModule() {
       <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 30px;">
         <h3 style="font-size: 16px; font-weight: 900; margin-bottom: 15px; color: var(--text); text-transform: uppercase;">📋 Auditoría (Últimos 50 cambios)</h3>
 
-        <div style="overflow-x: auto;">
-          <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+        <div class="tabla-scroll">
+          <table style="width: 100%; border-collapse: collapse; font-size: 12px; min-width: 560px;">
             <thead>
               <tr style="background: var(--navy); color: #fff;">
                 <th style="padding: 10px; text-align: left; font-weight: 800; text-transform: uppercase;">Tipo</th>
@@ -84,8 +84,8 @@ function renderCentroModule() {
       <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
         <h3 style="font-size: 16px; font-weight: 900; margin-bottom: 15px; color: var(--text); text-transform: uppercase;">⏰ Holds Activos</h3>
 
-        <div style="overflow-x: auto;">
-          <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+        <div class="tabla-scroll">
+          <table style="width: 100%; border-collapse: collapse; font-size: 12px; min-width: 560px;">
             <thead>
               <tr style="background: var(--navy); color: #fff;">
                 <th style="padding: 10px; text-align: left; font-weight: 800; text-transform: uppercase;">Hold ID</th>

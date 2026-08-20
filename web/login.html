@@ -26,6 +26,8 @@
   box-sizing: border-box;
 }
 
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+
 body {
   font-family: 'Montserrat', sans-serif;
   background: linear-gradient(135deg, var(--color-dark) 0%, var(--color-medium) 100%);
@@ -150,7 +152,9 @@ body {
   border: 1.5px solid var(--color-border);
   border-radius: 8px;
   font-family: 'Montserrat', sans-serif;
-  font-size: 14px;
+  /* 16px y no menos: iOS Safari hace zoom al enfocar un campo mas pequeno,
+     y el usuario acaba pellizcando la pantalla para volver a ver el boton. */
+  font-size: 16px;
   color: var(--color-text);
   background: var(--color-white);
   transition: all 0.2s ease;
@@ -176,7 +180,8 @@ body {
   border-radius: 8px;
   font-family: 'Montserrat', sans-serif;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 14px;
+  min-height: 46px;
   cursor: pointer;
   transition: all 0.2s ease;
   letter-spacing: 1px;
