@@ -212,7 +212,9 @@ hr.dv{border:none;border-top:1.5px solid var(--div);margin:16px 0}
 /* iOS gira el telefono y agranda el texto por su cuenta si no se le dice esto. */
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 
-/* Nada debe empujar la pagina a lo ancho. */
+/* Red de seguridad: un nombre de cliente muy largo no debe correr la pagina
+   entera de lado. Los desbordes reales estan corregidos abajo; esto solo evita
+   que un dato inesperado rompa el layout en el celular. */
 body{overflow-x:hidden}
 
 /* Las tablas anchas se desplazan dentro de su caja, no arrastran la pagina. */
@@ -336,7 +338,7 @@ body{overflow-x:hidden}
 
     <!-- Tab: Crear Producto -->
     <div id="tab-crear" style="display:block;">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:12px;">
         <input type="text" id="prod-id" placeholder="ID del producto (ej: prod-004)" style="padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--inp);color:var(--text);font-family:Montserrat;">
         <input type="text" id="prod-nombre" placeholder="Nombre del producto" style="padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--inp);color:var(--text);font-family:Montserrat;">
         <input type="number" id="prod-costo" placeholder="Precio costo" step="0.01" style="padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--inp);color:var(--text);font-family:Montserrat;">
@@ -348,7 +350,7 @@ body{overflow-x:hidden}
 
     <!-- Tab: Agregar Stock -->
     <div id="tab-inventario" style="display:none;">
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:12px;">
         <select id="prod-select" style="padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--inp);color:var(--text);font-family:Montserrat;">
           <option value="">Selecciona producto...</option>
         </select>
@@ -360,7 +362,7 @@ body{overflow-x:hidden}
 
     <!-- Tab: Usuarios -->
     <div id="tab-usuarios" style="display:none;">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:12px;">
         <input type="text" id="u-usuario" placeholder="Usuario (ej: juan)" autocomplete="off" style="padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--inp);color:var(--text);font-family:Montserrat;">
         <input type="text" id="u-nombre" placeholder="Nombre completo" autocomplete="off" style="padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--inp);color:var(--text);font-family:Montserrat;">
         <input type="password" id="u-password" placeholder="Contraseña (mínimo 8)" autocomplete="new-password" style="padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--inp);color:var(--text);font-family:Montserrat;">
@@ -982,7 +984,7 @@ function renderList(){
   const filtered=activeFilter==='all'?quotes:activeFilter==='paid'?paid:activeFilter==='sent'?sent:pend;
   const withIdx=filtered.map(q=>({q,i:quotes.indexOf(q)}));
   return`
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px">
     <div class="sc" style="grid-column:span 3;display:flex;align-items:center;justify-content:space-between;gap:12px;border-left:4px solid var(--bpa-c);padding-left:18px">
       <div>
         <div class="sl">💰 Ingresos Reales — Monto Cobrado</div>
