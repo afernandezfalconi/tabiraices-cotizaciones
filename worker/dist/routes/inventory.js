@@ -131,6 +131,44 @@ export async function handleInventoryRequest(request, kv, usuariosKV) {
             });
             return json({ success: true, data: updated });
         }
+        // PUT /api/inventory/:id — corregir un producto ya dado de alta.
+        //
+        // Ajustar la cantidad aquí es una CORRECCIÓN DE CONTEO, no un ingreso: se
+        // audita como 'configuracion' con el ajuste exacto. Si se registrara como
+        // ingreso, la bitácora diría que llegó material que nunca llegó.
+        if (request.method === 'PUT' && pathname.match(/^\/api\/inventory\/[^/]+$/)) {
+            const yo = await requirePermiso(request, usuariosKV, 'inventario');
+            const id = pathname.split('/').pop();
+            const antes = await inventoryService.getProduct(id);
+            if (!antes)
+                throw new Error('PRODUCT_NOT_FOUND');
+            const body = (await request.json());
+            const actualizado = await inventoryService.editarProducto(id, body);
+            const cambios = {};
+            if (antes.nombre !== actualizado.nombre)
+                cambios.nombre = { antes: antes.nombre, ahora: actualizado.nombre };
+            if (antes.precio_costo !== actualizado.precio_costo)
+                cambios.precio_costo = { antes: antes.precio_costo, ahora: actualizado.precio_costo };
+            if (antes.precio_venta !== actualizado.precio_venta)
+                cambios.precio_venta = { antes: antes.precio_venta, ahora: actualizado.precio_venta };
+            const ajusteCantidad = actualizado.cantidad_total - antes.cantidad_total;
+            if (ajusteCantidad !== 0)
+                cambios.ajuste_cantidad = ajusteCantidad;
+            if (Object.keys(cambios).length) {
+                await auditService.log({
+                    tipo: 'configuracion',
+                    usuario_id: yo.usuario,
+                    producto_id: id,
+                    cantidad_antes: antes.cantidad_total,
+                    cantidad_despues: actualizado.cantidad_total,
+                    detalles: {
+                        razon: ajusteCantidad !== 0 ? 'Corrección de conteo' : 'Edición de producto',
+                        ...cambios,
+                    },
+                });
+            }
+            return json({ success: true, data: actualizado });
+        }
         // GET /api/inventory/:id
         if (request.method === 'GET' &&
             pathname.match(/^\/api\/inventory\/[^/]+$/) &&

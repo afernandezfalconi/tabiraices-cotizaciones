@@ -583,16 +583,91 @@ async function cargarProductosInventario(){
       // El valor sólo se pinta si el servidor lo mandó: sin permiso 'ver_costos'
       // ni siquiera viaja en la respuesta.
       lista.innerHTML = productos.map(p => `
-        <div style="padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;display:flex;justify-content:space-between;align-items:center;">
-          <div>
-            <div style="font-weight:700;color:var(--text);">${p.nombre}</div>
-            <div style="font-size:12px;color:var(--muted);">ID: ${p.id} • Stock: ${p.cantidad_total}${p.valor_total!==undefined?' • Valor: $'+p.valor_total.toLocaleString():''}</div>
+        <div style="padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div style="min-width:0;">
+              <div style="font-weight:700;color:var(--text);">${p.nombre}</div>
+              <div style="font-size:12px;color:var(--muted);">ID: ${p.id} • Stock: ${p.cantidad_total}${p.cantidad_bloqueada?' ('+p.cantidad_bloqueada+' apartado)':''}${p.valor_total!==undefined?' • Valor: $'+p.valor_total.toLocaleString():''}</div>
+            </div>
+            <button class="btn bgh bsm" onclick="abrirEdicionProducto('${p.id}')">Editar</button>
+          </div>
+          <div id="editar-${p.id}" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:10px;">
+              <div>
+                <label style="display:block;font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:4px;">Nombre</label>
+                <input id="ed-nombre-${p.id}" value="${(p.nombre||'').replace(/"/g,'&quot;')}" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;background:var(--inp);color:var(--text);font-family:Montserrat;">
+              </div>
+              ${p.precio_costo!==undefined?`
+              <div>
+                <label style="display:block;font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:4px;">Precio costo</label>
+                <input id="ed-costo-${p.id}" type="number" step="0.01" min="0" value="${p.precio_costo}" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;background:var(--inp);color:var(--text);font-family:Montserrat;">
+              </div>`:''}
+              <div>
+                <label style="display:block;font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:4px;">Precio venta</label>
+                <input id="ed-venta-${p.id}" type="number" step="0.01" min="0" value="${p.precio_venta}" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;background:var(--inp);color:var(--text);font-family:Montserrat;">
+              </div>
+              <div>
+                <label style="display:block;font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:4px;">Stock real (conteo)</label>
+                <input id="ed-stock-${p.id}" type="number" min="${p.cantidad_bloqueada||0}" value="${p.cantidad_total}" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;background:var(--inp);color:var(--text);font-family:Montserrat;">
+              </div>
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">
+              Cambiar el stock aquí se registra como <strong>corrección de conteo</strong>, no como entrada de material.
+              ${p.cantidad_bloqueada?`No puede quedar por debajo de ${p.cantidad_bloqueada}, que ya está apartado.`:''}
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn bg bsm" onclick="guardarEdicionProducto('${p.id}')">Guardar cambios</button>
+              <button class="btn bgh bsm" onclick="abrirEdicionProducto('${p.id}')">Cancelar</button>
+            </div>
           </div>
         </div>
       `).join('');
     }
   } catch(e) {
     if(e.message!=='SESION_EXPIRADA') console.error('Error cargando inventario:', e);
+  }
+}
+
+/** Abre o cierra el editor de un producto. */
+function abrirEdicionProducto(id){
+  const caja=document.getElementById('editar-'+id);
+  if(caja) caja.style.display = caja.style.display==='none' ? 'block' : 'none';
+}
+
+/**
+ * Guarda las correcciones de un producto.
+ *
+ * ⚠️ El stock que se escribe aquí es el CONTEO REAL, no una entrada. Cambiar
+ * 110 por 105 registra un ajuste de -5 en la bitácora como "corrección de
+ * conteo". Para material que sí llegó, se usa "Agregar Stock": si no, el
+ * historial diría que entró mercancía que nunca llegó.
+ */
+async function guardarEdicionProducto(id){
+  const v=(x)=>{const el=document.getElementById(x+id); return el?el.value:undefined;};
+  const nombre=(v('ed-nombre-')||'').trim();
+  if(!nombre){ alert('El nombre no puede quedar vacío'); return; }
+
+  const cambios={nombre};
+  const costo=v('ed-costo-'); if(costo!==undefined && costo!=='') cambios.precio_costo=parseFloat(costo);
+  const venta=v('ed-venta-'); if(venta!==undefined && venta!=='') cambios.precio_venta=parseFloat(venta);
+  const stock=v('ed-stock-'); if(stock!==undefined && stock!=='') cambios.cantidad_total=parseInt(stock,10);
+
+  try{
+    await api('/api/inventory/'+id,{method:'PUT',body:JSON.stringify(cambios)});
+    alert('✅ Producto actualizado');
+    cargarProductosInventario();
+    await cargarCatalogo();               // el desplegable de cotizar usa estos nombres
+    window.dispatchEvent(new CustomEvent('inventory:updated'));
+  }catch(e){
+    if(e.message==='SESION_EXPIRADA') return;
+    const claro={
+      MENOR_QUE_APARTADO:'No puedes dejar el stock por debajo de lo que ya está apartado a un cliente.',
+      NOMBRE_VACIO:'El nombre no puede quedar vacío.',
+      PRECIO_INVALIDO:'Revisa los precios: deben ser números positivos.',
+      CANTIDAD_INVALIDA:'La cantidad debe ser un número positivo.',
+      PRODUCT_NOT_FOUND:'Ese producto ya no existe.'
+    };
+    alert('❌ '+(claro[e.message]||e.message));
   }
 }
 

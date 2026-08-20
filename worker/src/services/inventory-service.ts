@@ -172,6 +172,58 @@ export class InventoryService {
     return product;
   }
 
+  /**
+   * Corrige los datos de un producto ya dado de alta.
+   *
+   * ⚠️ Ajustar `cantidad_total` aquí NO es lo mismo que un ingreso: un ingreso
+   * es material que llegó, esto es una corrección de conteo. La ruta las
+   * registra en la bitácora con tipos distintos, o el historial diría que
+   * entró material que nunca llegó.
+   */
+  async editarProducto(
+    id: string,
+    cambios: {
+      nombre?: string;
+      precio_costo?: number;
+      precio_venta?: number;
+      cantidad_total?: number;
+    }
+  ): Promise<Product> {
+    const p = await this.getProduct(id);
+    if (!p) throw new Error('PRODUCT_NOT_FOUND');
+
+    if (cambios.nombre !== undefined) {
+      const nombre = String(cambios.nombre).trim();
+      if (!nombre) throw new Error('NOMBRE_VACIO');
+      p.nombre = nombre.slice(0, 120);
+    }
+    if (cambios.precio_costo !== undefined) {
+      const v = Number(cambios.precio_costo);
+      if (!Number.isFinite(v) || v < 0) throw new Error('PRECIO_INVALIDO');
+      p.precio_costo = v;
+    }
+    if (cambios.precio_venta !== undefined) {
+      const v = Number(cambios.precio_venta);
+      if (!Number.isFinite(v) || v < 0) throw new Error('PRECIO_INVALIDO');
+      p.precio_venta = v;
+    }
+    if (cambios.cantidad_total !== undefined) {
+      const v = Number(cambios.cantidad_total);
+      if (!Number.isFinite(v) || v < 0) throw new Error('CANTIDAD_INVALIDA');
+      // No se puede dejar el total por debajo de lo ya apartado: el material
+      // comprometido con un cliente quedaría en disponible negativo.
+      if (v < p.cantidad_bloqueada) throw new Error('MENOR_QUE_APARTADO');
+      p.cantidad_total = v;
+    }
+
+    p.valor_total = p.cantidad_total * p.precio_costo;
+    p.cantidad_disponible = p.cantidad_total - p.cantidad_bloqueada;
+    p.actualizado_en = new Date().toISOString();
+
+    await this.kv.put(`inventory:${id}`, JSON.stringify(p));
+    return p;
+  }
+
   async createProduct(data: {
     id: string;
     nombre: string;
