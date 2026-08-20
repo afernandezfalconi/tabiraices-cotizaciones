@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manual del Cotizador | TABIRAÍCES</title>
+<meta name="description" content="Manual paso a paso del cotizador de TABIRAÍCES: cotizar, compartir con el cliente, controlar inventario y dar de alta vendedores.">
+<!-- Documentacion interna: accesible con el enlace, fuera de los buscadores. -->
+<meta name="robots" content="noindex, nofollow">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png">
+<meta name="theme-color" content="#0D1B2A">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+
+<style>
+/* ── Tokens ────────────────────────────────────────────────────────────────
+   Paleta y tipografía tomadas del propio cotizador, para que el manual se
+   lea como parte de la herramienta y no como un documento ajeno.          */
+:root{
+  --papel:#f4f3ef;
+  --hoja:#ffffff;
+  --hoja2:#f0efe9;
+  --borde:#d8d7d1;
+  --tinta:#1a1a1a;
+  --tenue:#5f6360;
+  --navy:#0D1B2A;
+  --navy2:#162336;
+  --oro:#F5C010;
+  --oro2:#E0A800;
+  --oro-tenue:#7a5c00;
+  --ok:#0f7a4d;
+  --ok-fondo:#e3f4ea;
+  --alerta:#9a5b00;
+  --alerta-fondo:#fdf1dc;
+  --alto:#a6231b;
+  --alto-fondo:#fbe6e4;
+  --sombra:rgba(13,27,42,.10);
+  --paso-cara:#0D1B2A;
+  --paso-texto:#F5C010;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --papel:#080e18;
+    --hoja:#0f1a28;
+    --hoja2:#0a1220;
+    --borde:#1e3350;
+    --tinta:#dce8f5;
+    --tenue:#8ba5bf;
+    --navy:#0a1523;
+    --navy2:#132032;
+    --oro:#F5C010;
+    --oro2:#ffd43f;
+    --oro-tenue:#f0c95c;
+    --ok:#4ade9a;
+    --ok-fondo:#0a2a1a;
+    --alerta:#fbbf24;
+    --alerta-fondo:#3a2800;
+    --alto:#f87171;
+    --alto-fondo:#2a0f0f;
+    --sombra:rgba(0,0,0,.4);
+    --paso-cara:#F5C010;
+    --paso-texto:#0D1B2A;
+  }
+}
+:root[data-theme="dark"]{
+  --papel:#080e18;
+  --hoja:#0f1a28;
+  --hoja2:#0a1220;
+  --borde:#1e3350;
+  --tinta:#dce8f5;
+  --tenue:#8ba5bf;
+  --navy:#0a1523;
+  --navy2:#132032;
+  --oro:#F5C010;
+  --oro2:#ffd43f;
+  --oro-tenue:#f0c95c;
+  --ok:#4ade9a;
+  --ok-fondo:#0a2a1a;
+  --alerta:#fbbf24;
+  --alerta-fondo:#3a2800;
+  --alto:#f87171;
+  --alto-fondo:#2a0f0f;
+  --sombra:rgba(0,0,0,.4);
+  --paso-cara:#F5C010;
+  --paso-texto:#0D1B2A;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}
+  *{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+
+body{
+  background:var(--papel);
+  color:var(--tinta);
+  font-family:'Source Serif 4',Georgia,'Times New Roman',serif;
+  font-size:17px;
+  line-height:1.62;
+  padding:0 20px 80px;
+}
+
+.envoltura{max-width:760px;margin:0 auto}
+
+/* ── Portada ───────────────────────────────────────────────────────────── */
+.portada{
+  background:var(--navy);
+  color:#fff;
+  margin:0 -20px 0;
+  padding:44px 24px 38px;
+  border-bottom:5px solid var(--oro);
+}
+.portada .centro{max-width:760px;margin:0 auto}
+.marca{
+  font-family:Montserrat,system-ui,sans-serif;
+  font-size:12px;font-weight:800;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--oro);
+  margin-bottom:14px;
+}
+.portada h1{
+  font-family:Montserrat,system-ui,sans-serif;
+  font-size:clamp(30px,7vw,46px);
+  font-weight:900;line-height:1.06;letter-spacing:-.015em;
+  text-wrap:balance;color:#fff;
+}
+.entradilla{
+  margin-top:16px;font-size:17px;line-height:1.6;
+  color:rgba(255,255,255,.82);max-width:56ch;
+}
+.acceso{
+  display:inline-flex;align-items:center;gap:9px;flex-wrap:wrap;
+  margin-top:24px;padding:11px 17px;
+  background:rgba(245,192,16,.12);
+  border:1px solid rgba(245,192,16,.35);
+  border-radius:8px;
+  font-family:Montserrat,system-ui,sans-serif;
+  font-size:13px;font-weight:700;color:var(--oro);
+  word-break:break-all;
+}
+
+/* ── Índice ────────────────────────────────────────────────────────────── */
+.indice{
+  background:var(--hoja);border:1px solid var(--borde);
+  border-radius:10px;padding:20px 22px;margin:32px 0 0;
+}
+.indice h2{
+  font-family:Montserrat,system-ui,sans-serif;
+  font-size:11px;font-weight:800;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--tenue);margin-bottom:12px;
+}
+.indice ol{list-style:none;display:grid;gap:2px}
+.indice a{
+  display:flex;gap:11px;align-items:baseline;
+  padding:7px 8px;margin:0 -8px;border-radius:6px;
+  color:var(--tinta);text-decoration:none;font-size:16px;
+  transition:background .15s,color .15s;
+}
+.indice a:hover{background:var(--hoja2);color:var(--oro-tenue)}
+.indice a:focus-visible{outline:2px solid var(--oro);outline-offset:1px}
+.indice .n{
+  font-family:Montserrat,system-ui,sans-serif;
+  font-size:12px;font-weight:800;color:var(--oro-tenue);
+  min-width:20px;font-variant-numeric:tabular-nums;
+}
+
+/* ── Secciones ─────────────────────────────────────────────────────────── */
+section{margin-top:52px;scroll-margin-top:20px}
+.rotulo{
+  font-family:Montserrat,system-ui,sans-serif;
+  font-size:11px;font-weight:800;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--oro-tenue);
+  margin-bottom:9px;
+}
+h2{
+  font-family:Montserrat,system-ui,sans-serif;
+  font-size:clamp(23px,4.4vw,30px);font-weight:800;
+  line-height:1.16;letter-spacing:-.012em;text-wrap:balance;
+  padding-bottom:13px;border-bottom:2px solid var(--borde);
+}
+h3{
+  font-family:Montserrat,system-ui,sans-serif;
+  font-size:16px;font-weight:800;margin:32px 0 10px;
+  letter-spacing:-.005em;text-wrap:balance;
+}
+p{margin-top:14px;max-width:66ch}
+p+p{margin-top:12px}
+strong{font-weight:600;color:var(--tinta)}
+em{font-style:italic}
+
+/* ── Pasos: cuadros apilados, como los bloques del negocio ─────────────── */
+.pasos{list-style:none;counter-reset:paso;margin-top:22px;display:grid;gap:20px}
+.pasos>li{counter-increment:paso;display:grid;grid-template-columns:38px 1fr;gap:16px}
+.pasos>li::before{
+  content:counter(paso);
+  grid-row:span 2;
+  width:34px;height:34px;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--paso-cara);color:var(--paso-texto);
+  font-family:Montserrat,system-ui,sans-serif;
+  font-size:15px;font-weight:900;
+  border-radius:3px;
+  box-shadow:3px 3px 0 var(--sombra);
+  font-variant-numeric:tabular-nums;
+}
+.pasos>li>*{margin-top:0}
+.pasos>li>*+*{margin-top:9px}
+.pasos h4{
+  font-family:Montserrat,system-ui,sans-serif;
+  font-size:16px;font-weight:800;line-height:1.35;
+  padding-top:5px;text-wrap:balance;
+}
+
+/* ── Avisos ────────────────────────────────────────────────────────────── */
+.aviso{
+  margin-top:24px;padding:16px 18px;
+  border-radius:9px;border:1px solid;
+  border-left-width:4px;
+}
+.aviso .titulo{
+  font-family:Montserrat,system-ui,sans-serif;
+  font-size:11px;font-weight:800;letter-spacing:.13em;
+  text-transform:uppercase;margin-bottom:7px;
+}
+.aviso p{margin-top:0;font-size:16px}
+.aviso p+p{margin-top:9px}
+.cuidado{background:var(--alerta-fondo);border-color:var(--alerta)}
+.cuidado .titulo{color:var(--alerta)}
+.nunca{background:var(--alto-fondo);border-color:var(--alto)}
+.nunca .titulo{color:var(--alto)}
+.bien{background:var(--ok-fondo);border-color:var(--ok)}
+.bien .titulo{color:var(--ok)}
+
+/* ── Tablas ────────────────────────────────────────────────────────────── */
+.tabla{overflow-x:auto;margin-top:22px;border:1px solid var(--borde);border-radius:9px}
+table{width:100%;border-collapse:collapse;font-size:15px;min-width:480px}
+thead th{
+  background:var(--navy);color:#fff;text-align:left;
+  font-family:Montserrat,system-ui,sans-serif;
+  font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  padding:11px 14px;
+}
+tbody td{padding:12px 14px;border-top:1px solid var(--borde);vertical-align:top}
+tbody tr:nth-child(even){background:var(--hoja2)}
+td.si{color:var(--ok);font-weight:600}
+td.no{color:var(--alto);font-weight:600}
+.rol{
+  font-family:Montserrat,system-ui,sans-serif;
+  font-size:12px;font-weight:800;letter-spacing:.05em;white-space:nowrap;
+}
+
+/* ── Elementos de interfaz citados ─────────────────────────────────────── */
+.ui{
+  font-family:Montserrat,system-ui,sans-serif;
+  font-size:12.5px;font-weight:700;
+  background:var(--hoja2);border:1px solid var(--borde);
+  border-radius:5px;padding:2px 7px;white-space:nowrap;
+  color:var(--tinta);
+}
+.ruta{
+  font-family:Montserrat,system-ui,sans-serif;
+  font-size:13px;font-weight:700;color:var(--oro-tenue);
+}
+
+ul.lista{margin-top:14px;padding-left:0;list-style:none;display:grid;gap:9px}
+ul.lista li{position:relative;padding-left:20px;max-width:64ch}
+ul.lista li::before{
+  content:"";position:absolute;left:2px;top:.62em;
+  width:7px;height:7px;background:var(--oro);border-radius:1px;
+}
+
+/* ── Cierre ────────────────────────────────────────────────────────────── */
+.cierre{
+  margin-top:60px;padding-top:26px;border-top:2px solid var(--borde);
+  font-size:15px;color:var(--tenue);
+}
+</style>
+</head>
+<body>
+<header class="portada">
+  <div class="centro">
+    <div class="marca">TABIRAÍCES · Manual de operación</div>
+    <h1>Cómo usar el cotizador</h1>
+    <p class="entradilla">
+      Todo lo que hay que saber para cotizar, controlar el inventario y dar de alta
+      vendedores. Escrito para consultarse desde el celular, en la obra.
+    </p>
+    <div class="acceso">tabiraices.pages.dev/login</div>
+  </div>
+</header>
+
+<div class="envoltura">
+
+  <nav class="indice" aria-label="Contenido">
+    <h2>Contenido</h2>
+    <ol>
+      <li><a href="#empezar"><span class="n">1</span><span>Antes de empezar</span></a></li>
+      <li><a href="#roles"><span class="n">2</span><span>Quién puede hacer qué</span></a></li>
+      <li><a href="#entrar"><span class="n">3</span><span>Entrar y dejarlo en el celular</span></a></li>
+      <li><a href="#cotizar"><span class="n">4</span><span>Hacer una cotización</span></a></li>
+      <li><a href="#compartir"><span class="n">5</span><span>Enviarla al cliente</span></a></li>
+      <li><a href="#estatus"><span class="n">6</span><span>Cobrada, enviada o cancelada</span></a></li>
+      <li><a href="#inventario"><span class="n">7</span><span>Inventario</span></a></li>
+      <li><a href="#usuarios"><span class="n">8</span><span>Dar de alta vendedores</span></a></li>
+      <li><a href="#centro"><span class="n">9</span><span>Revisar qué pasó</span></a></li>
+      <li><a href="#dudas"><span class="n">10</span><span>Si algo no sale</span></a></li>
+    </ol>
+  </nav>
+
+  <!-- 1 ─────────────────────────────────────────────────────────────────── -->
+  <section id="empezar">
+    <div class="rotulo">Primero que nada</div>
+    <h2>Antes de empezar</h2>
+
+    <p>
+      El sistema llega con tres productos ya creados —postes lineales, postes esquineros
+      y tabiques— pero <strong>todos están en cero y con precios de ejemplo</strong>. Eso es
+      a propósito: es preferible que no haya nada a que aparezca material que en realidad
+      no está en el patio.
+    </p>
+
+    <p>Hay dos cosas que conviene hacer antes de cotizarle a nadie.</p>
+
+    <ol class="pasos">
+      <li>
+        <h4>Corregir los precios</h4>
+        <p>
+          Entra a <span class="ruta">Centro → Agregar Stock</span>, presiona
+          <span class="ui">Editar</span> en cada producto y pon tu precio de costo y tu
+          precio de venta reales. Los que trae ahora son de muestra.
+        </p>
+      </li>
+      <li>
+        <h4>Capturar lo que sí tienes</h4>
+        <p>
+          Cuenta el material y anótalo en el campo <span class="ui">Stock real (conteo)</span>
+          del mismo editor. A partir de ahí el sistema sabe qué puedes prometer.
+        </p>
+      </li>
+    </ol>
+
+    <div class="aviso cuidado">
+      <div class="titulo">Por qué importa</div>
+      <p>
+        Cuando un vendedor aparta material para un cliente, el sistema lo descuenta de lo
+        disponible durante 24 horas. Si el inventario dice 800 tabiques y en el patio hay
+        200, el vendedor va a prometer 800 con toda confianza.
+      </p>
+    </div>
+  </section>
+
+  <!-- 2 ─────────────────────────────────────────────────────────────────── -->
+  <section id="roles">
+    <div class="rotulo">Permisos</div>
+    <h2>Quién puede hacer qué</h2>
+
+    <p>
+      Hay tres tipos de cuenta. La diferencia no es sólo de comodidad: define qué información
+      ve cada quien.
+    </p>
+
+    <div class="tabla">
+      <table>
+        <thead>
+          <tr>
+            <th>Puede…</th>
+            <th>Vendedor</th>
+            <th>Dueño</th>
+            <th>Admin</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Hacer cotizaciones y apartar material</td><td class="si">Sí</td><td class="si">Sí</td><td class="si">Sí</td></tr>
+          <tr><td>Ver el stock disponible</td><td class="si">Sí</td><td class="si">Sí</td><td class="si">Sí</td></tr>
+          <tr><td><strong>Ver precios de costo y utilidad</strong></td><td class="no">No</td><td class="si">Sí</td><td class="si">Sí</td></tr>
+          <tr><td>Ver las cotizaciones de los demás</td><td class="no">No</td><td class="si">Sí</td><td class="si">Sí</td></tr>
+          <tr><td>Editar productos y precios</td><td class="no">No</td><td class="si">Sí</td><td class="si">Sí</td></tr>
+          <tr><td>Dar de alta vendedores</td><td class="no">No</td><td class="si">Sí</td><td class="si">Sí</td></tr>
+          <tr><td>Crear cuentas de Dueño o Admin</td><td class="no">No</td><td class="no">No</td><td class="si">Sí</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="aviso bien">
+      <div class="titulo">El vendedor nunca ve tu margen</div>
+      <p>
+        Un vendedor ve el <strong>precio de venta</strong> y cuánto material hay, pero el
+        precio de costo no le llega ni siquiera oculto en la pantalla: el servidor
+        directamente no se lo manda.
+      </p>
+      <p>
+        Tampoco ve las cotizaciones de sus compañeros. Cada quien trabaja con las suyas.
+      </p>
+    </div>
+  </section>
+
+  <!-- 3 ─────────────────────────────────────────────────────────────────── -->
+  <section id="entrar">
+    <div class="rotulo">Acceso</div>
+    <h2>Entrar y dejarlo en el celular</h2>
+
+    <ol class="pasos">
+      <li>
+        <h4>Abre la dirección</h4>
+        <p>Entra a <span class="ruta">tabiraices.pages.dev/login</span> y escribe tu usuario y contraseña.</p>
+      </li>
+      <li>
+        <h4>Déjalo como aplicación</h4>
+        <p>
+          En <strong>iPhone</strong>: menú de compartir → <span class="ui">Añadir a pantalla de inicio</span>.<br>
+          En <strong>Android</strong>: menú de tres puntos → <span class="ui">Instalar aplicación</span>.
+        </p>
+        <p>
+          Queda un icono que abre directo al cotizador, sin la barra del navegador y sin
+          tener que escribir la dirección cada vez.
+        </p>
+      </li>
+    </ol>
+
+    <h3>La pantalla</h3>
+    <p>Arriba hay tres pestañas y siempre están a la mano:</p>
+    <ul class="lista">
+      <li><span class="ui">📋 Cotizaciones</span> — el tablero: cuánto has cobrado, cuánto falta por cobrar, y todas tus cotizaciones.</li>
+      <li><span class="ui">📦 Inventario</span> — cuánto material hay, cuánto está apartado y cuánto queda libre.</li>
+      <li><span class="ui">🏢 Centro</span> — dar de alta productos, usuarios y ver el historial de movimientos.</li>
+    </ul>
+    <p>
+      El botón <span class="ui">+ Nueva Cotización</span> funciona desde cualquiera de las tres.
+      El sistema abre en modo oscuro; si prefieres el claro, presiona el sol de la barra
+      y lo recuerda la próxima vez que entres.
+    </p>
+  </section>
+
+  <!-- 4 ─────────────────────────────────────────────────────────────────── -->
+  <section id="cotizar">
+    <div class="rotulo">Lo de todos los días</div>
+    <h2>Hacer una cotización</h2>
+
+    <ol class="pasos">
+      <li>
+        <h4>Presiona “+ Nueva Cotización”</h4>
+        <p>
+          El folio se asigna solo y va en orden: la primera es la <strong>#0001</strong>, la
+          siguiente #0002. No lo escribas tú.
+        </p>
+      </li>
+      <li>
+        <h4>Llena los datos del cliente</h4>
+        <p>
+          Nombre, obra o proyecto, y dónde se entrega. La <strong>forma de pago</strong> se elige
+          de una lista: depósito, efectivo, tarjeta de crédito, tarjeta de débito o transferencia.
+        </p>
+      </li>
+      <li>
+        <h4>Elige los productos de la lista</h4>
+        <p>
+          En cada renglón se despliegan los productos dados de alta, con su precio.
+          <strong>Al elegir uno, el precio se llena solo</strong>; escribe nada más la cantidad.
+        </p>
+        <p>
+          Si necesitas cobrar algo que no es material —un flete, una maniobra, la
+          retroexcavadora— elige <span class="ui">✏️ Otro concepto</span> y escríbelo a mano.
+        </p>
+      </li>
+      <li>
+        <h4>Revisa el IVA y guarda</h4>
+        <p>
+          Puedes dejarlo en 0% o poner 16%. El total se calcula abajo conforme escribes.
+          Presiona <span class="ui">Guardar</span>.
+        </p>
+      </li>
+    </ol>
+
+    <div class="aviso bien">
+      <div class="titulo">Tus cotizaciones no viven en el teléfono</div>
+      <p>
+        Se guardan en el servidor. Puedes empezar una en la computadora de la oficina y
+        seguirla en el celular, o cambiar de teléfono, y ahí siguen.
+      </p>
+    </div>
+  </section>
+
+  <!-- 5 ─────────────────────────────────────────────────────────────────── -->
+  <section id="compartir">
+    <div class="rotulo">Con el cliente</div>
+    <h2>Enviarla al cliente</h2>
+
+    <p>
+      En la tarjeta de la cotización, presiona <span class="ui">🔗 Compartir</span>. Se copia
+      un enlace que puedes pegar en WhatsApp.
+    </p>
+
+    <p>
+      El cliente abre ese enlace y ve la cotización completa —productos, cantidades,
+      subtotal, IVA y total— <strong>sin necesitar contraseña ni instalar nada</strong>.
+    </p>
+
+    <div class="aviso bien">
+      <div class="titulo">Dos cosas que te van a ahorrar tiempo</div>
+      <p>
+        <strong>El enlace no cambia.</strong> Si corriges la cotización y vuelves a
+        compartirla, es el mismo enlace de antes. No tienes que mandar uno nuevo.
+      </p>
+      <p>
+        <strong>El cliente siempre ve la versión actual.</strong> Cambias una cantidad y el
+        enlace que ya le mandaste muestra lo nuevo. No se queda con la foto vieja.
+      </p>
+    </div>
+
+    <div class="aviso cuidado">
+      <div class="titulo">Qué ve y qué no</div>
+      <p>
+        El cliente ve el precio de venta y el total. <strong>Nunca ve tu precio de costo ni tu
+        utilidad.</strong> El enlace deja de funcionar a los 30 días.
+      </p>
+    </div>
+  </section>
+
+  <!-- 6 ─────────────────────────────────────────────────────────────────── -->
+  <section id="estatus">
+    <div class="rotulo">Seguimiento</div>
+    <h2>Cobrada, enviada o cancelada</h2>
+
+    <p>
+      Cada cotización tiene un estado que cambias con el botón de color en su tarjeta.
+      De eso salen los números del tablero.
+    </p>
+
+    <div class="tabla">
+      <table>
+        <thead>
+          <tr><th>Estado</th><th>Cuándo usarlo</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="rol">Pendiente</td><td>Apenas la hiciste, todavía no la mandas.</td></tr>
+          <tr><td class="rol">Enviada</td><td>Ya la tiene el cliente y estás esperando respuesta.</td></tr>
+          <tr><td class="rol">Pagada</td><td>Ya cobraste. Cuenta en “ingresos reales”.</td></tr>
+          <tr><td class="rol">Cancelada</td><td>El cliente ya no la quiere.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="aviso bien">
+      <div class="titulo">Cancelar libera el material</div>
+      <p>
+        Si el cliente se arrepiente, marca la cotización como <strong>Cancelada</strong> y el
+        material que estaba apartado vuelve a quedar disponible de inmediato.
+      </p>
+      <p>
+        Si no la cancelas, ese material sigue bloqueado 24 horas y ningún otro vendedor
+        puede ofrecerlo.
+      </p>
+    </div>
+  </section>
+
+  <!-- 7 ─────────────────────────────────────────────────────────────────── -->
+  <section id="inventario">
+    <div class="rotulo">El patio</div>
+    <h2>Inventario</h2>
+
+    <p>
+      Todo se administra desde <span class="ruta">Centro → Panel de Administración</span>.
+      La pestaña <span class="ui">Inventario</span> es sólo para consultar.
+    </p>
+
+    <h3>Dar de alta un producto nuevo</h3>
+    <p>
+      En <span class="ruta">Crear Producto</span> pon un identificador corto y sin espacios
+      (por ejemplo <em>prod-004</em>), el nombre como quieres que aparezca en las
+      cotizaciones, el precio de costo, el de venta y cuántos tienes.
+    </p>
+
+    <h3>Cuando llega material</h3>
+    <p>
+      En <span class="ruta">Agregar Stock</span> elige el producto y escribe
+      <strong>cuántas piezas llegaron</strong>. Se suman a lo que ya había.
+    </p>
+
+    <h3>Cuando el conteo no cuadra</h3>
+    <p>
+      Presiona <span class="ui">Editar</span> en el producto y corrige el campo
+      <span class="ui">Stock real (conteo)</span> con la cantidad que de verdad hay. Ahí
+      mismo puedes corregir el nombre y los precios.
+    </p>
+
+    <div class="aviso cuidado">
+      <div class="titulo">No es lo mismo agregar que corregir</div>
+      <p>
+        <strong>Agregar Stock</strong> es material que llegó: “entraron 50 postes”.<br>
+        <strong>Editar → Stock real</strong> es un ajuste de conteo: “decía 110 y en el patio
+        hay 105”.
+      </p>
+      <p>
+        El sistema los guarda por separado en el historial. Si usas “Agregar Stock” para
+        cuadrar un conteo, el historial va a decir que llegó mercancía que nunca llegó.
+      </p>
+    </div>
+
+    <div class="aviso nunca">
+      <div class="titulo">Lo que el sistema no te va a dejar hacer</div>
+      <p>
+        No puedes dejar el stock por debajo de lo que ya está apartado a un cliente. Si hay
+        20 postes comprometidos, no puedes poner el total en 15: ese material ya lo prometió
+        alguien. Libera el apartado primero.
+      </p>
+    </div>
+  </section>
+
+  <!-- 8 ─────────────────────────────────────────────────────────────────── -->
+  <section id="usuarios">
+    <div class="rotulo">Tu equipo</div>
+    <h2>Dar de alta vendedores</h2>
+
+    <ol class="pasos">
+      <li>
+        <h4>Ve a Centro → Usuarios</h4>
+        <p>Ahí aparece la lista de todas las cuentas.</p>
+      </li>
+      <li>
+        <h4>Llena los datos</h4>
+        <p>
+          Un usuario corto y sin espacios para que lo teclee fácil en el celular, su nombre
+          completo, una contraseña de <strong>mínimo 8 caracteres</strong> y el rol
+          <span class="ui">Vendedor</span>.
+        </p>
+      </li>
+      <li>
+        <h4>Entrégale sus datos</h4>
+        <p>
+          Dile su usuario y su contraseña. Cuando entre, sólo verá lo suyo y no verá tus
+          costos.
+        </p>
+      </li>
+    </ol>
+
+    <h3>Si alguien olvida su contraseña</h3>
+    <p>
+      Presiona <span class="ui">Contraseña</span> en su renglón y ponle una nueva. No hay
+      correos de recuperación: tú se la restableces.
+    </p>
+
+    <h3>Si alguien deja de trabajar contigo</h3>
+    <p>
+      Usa <span class="ui">Desactivar</span> en lugar de eliminar. La cuenta deja de
+      funcionar de inmediato, pero sus cotizaciones y su historial se conservan.
+    </p>
+
+    <div class="aviso cuidado">
+      <div class="titulo">Cambiar una contraseña cierra la sesión</div>
+      <p>
+        En cuanto le pones contraseña nueva a alguien, o desactivas su cuenta, queda fuera
+        del sistema en ese momento — aunque tenga el teléfono abierto.
+      </p>
+      <p>
+        Es a propósito: si pierdes un celular con la sesión abierta, así es como lo cierras.
+      </p>
+    </div>
+
+    <div class="aviso nunca">
+      <div class="titulo">Nadie se borra a sí mismo</div>
+      <p>
+        No puedes eliminar ni desactivar tu propia cuenta. Es la protección que evita que te
+        quedes fuera de tu propio sistema.
+      </p>
+    </div>
+  </section>
+
+  <!-- 9 ─────────────────────────────────────────────────────────────────── -->
+  <section id="centro">
+    <div class="rotulo">Control</div>
+    <h2>Revisar qué pasó</h2>
+
+    <p>
+      Abajo en <span class="ruta">Centro</span> hay dos tablas que responden casi cualquier
+      duda de “¿quién movió esto?”.
+    </p>
+
+    <h3>Auditoría</h3>
+    <p>
+      Cada movimiento de inventario queda registrado: quién lo hizo, qué producto,
+      cuánto había antes, cuánto quedó y a qué hora. Las entradas de material, las ventas y
+      las correcciones de conteo aparecen por separado.
+    </p>
+
+    <h3>Apartados activos</h3>
+    <p>
+      Qué material está comprometido en este momento, de qué cotización es y a qué hora se
+      libera solo si nadie lo cobra.
+    </p>
+  </section>
+
+  <!-- 10 ────────────────────────────────────────────────────────────────── -->
+  <section id="dudas">
+    <div class="rotulo">Problemas comunes</div>
+    <h2>Si algo no sale</h2>
+
+    <h3>“Usuario o contraseña incorrectos”</h3>
+    <p>
+      Revisa que no haya un espacio de más. A los cinco intentos fallidos la cuenta se
+      bloquea <strong>15 minutos</strong>; es contra quien ande probando contraseñas. Si de
+      verdad la olvidaste, pídele al administrador que te la restablezca.
+    </p>
+
+    <h3>Me sacó del sistema de repente</h3>
+    <p>
+      La sesión dura una semana. También se cierra sola si alguien cambió tu contraseña o
+      desactivó tu cuenta. Vuelve a entrar.
+    </p>
+
+    <h3>No me deja apartar material</h3>
+    <p>
+      No hay suficiente disponible. Revisa <span class="ui">📦 Inventario</span>: puede que el
+      total esté bien pero haya piezas apartadas en otras cotizaciones. Si alguna de ésas ya
+      no va, cancélala y el material se libera.
+    </p>
+
+    <h3>El cliente dice que el enlace no abre</h3>
+    <p>
+      Los enlaces duran 30 días. Si ya pasó ese tiempo, entra a la cotización y presiona
+      <span class="ui">🔗 Compartir</span> otra vez.
+    </p>
+
+    <h3>No veo los precios de costo</h3>
+    <p>
+      Tu cuenta es de vendedor. Es intencional, no es una falla.
+    </p>
+
+    <h3>Acabo de crear algo y no aparece</h3>
+    <p>
+      Espera unos segundos y vuelve a entrar a la pestaña. El sistema tarda un momento en
+      reflejar lo recién creado. <strong>No lo crees dos veces.</strong>
+    </p>
+  </section>
+
+  <div class="cierre">
+    <p>
+      Manual de operación del cotizador de TABIRAÍCES · Ventanilla, Colotepec,
+      Puerto Escondido, Oaxaca.
+    </p>
+  </div>
+
+</div>
+</body>
+</html>
