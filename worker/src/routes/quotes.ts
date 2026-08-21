@@ -1,6 +1,7 @@
 import { QuotesService, Cotizacion, totalDe } from '../services/quotes-service';
 import { requirePermiso, AuthError } from '../middleware/auth';
 import { puede } from '../lib/roles';
+import { bitacora } from '../services/bitacora-service';
 
 const json = (data: any, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -127,11 +128,13 @@ td{padding:10px;border-bottom:1px solid #eee}
 export async function handleQuotesRequest(
   request: Request,
   kv: KVNamespace,
-  usuariosKV: KVNamespace
+  usuariosKV: KVNamespace,
+  ipSalt?: string
 ): Promise<Response> {
   const url = new URL(request.url);
   const ruta = url.pathname;
   const metodo = request.method;
+  const ip = request.headers.get('CF-Connecting-IP') || '';
   const quotes = new QuotesService(kv);
 
   /* ---------------- landing pública: SIN autenticación, a propósito ------- */
@@ -144,6 +147,10 @@ export async function handleQuotesRequest(
         { status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
       );
     }
+    // Cuántas veces abre el cliente la cotización que le mandaron: es la
+    // señal de si la herramienta le está sirviendo al vendedor.
+    await bitacora(usuariosKV, c.creado_por_nombre || c.creado_por, 'landing_vista',
+      `#${c.id} · ${c.client || 'sin cliente'}`, ip, ipSalt);
     return new Response(landingHTML(c), {
       headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
     });
@@ -175,7 +182,16 @@ export async function handleQuotesRequest(
         return err('No puedes modificar una cotización de otro vendedor', 403, 'PERMISO');
       }
     }
+    const esNueva = !!body.nueva || !body.id;
     const guardada = await quotes.guardar(body, { id: yo.id, nombre: yo.nombre });
+    await bitacora(
+      usuariosKV,
+      yo.usuario,
+      esNueva ? 'cotizacion_crear' : 'cotizacion_editar',
+      `#${guardada.id} · ${guardada.client || 'sin cliente'} · $${totalDe(guardada).toFixed(2)}`,
+      ip,
+      ipSalt
+    );
     return ok(guardada);
   }
 
@@ -190,6 +206,8 @@ export async function handleQuotesRequest(
     }
     if (metodo === 'DELETE') {
       await quotes.eliminar(mId[1]);
+      await bitacora(usuariosKV, yo.usuario, 'cotizacion_eliminar',
+        `#${c.id} · ${c.client || 'sin cliente'}`, ip, ipSalt);
       return ok({ eliminada: true });
     }
     return ok(c);
@@ -206,6 +224,8 @@ export async function handleQuotesRequest(
     }
     // Reutiliza el enlace ya publicado: compartir dos veces da la MISMA URL.
     const token = await quotes.tokenDeLanding(c.id);
+    await bitacora(usuariosKV, yo.usuario, 'cotizacion_compartir',
+      `#${c.id} · ${c.client || 'sin cliente'}`, ip, ipSalt);
     return ok({ token, total: totalDe(c) });
   }
 

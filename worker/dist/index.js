@@ -50,7 +50,7 @@ export default {
             if (pathname.startsWith('/landing/') || pathname.startsWith('/api/cotizaciones')) {
                 // La landing es pública a propósito: es el enlace que se manda al
                 // cliente. handleQuotesRequest exige sesión en todo lo demás.
-                response = await handleQuotesRequest(request, env.INVENTORY_KV, env.TABIRA_USUARIOS);
+                response = await handleQuotesRequest(request, env.INVENTORY_KV, env.TABIRA_USUARIOS, env.IP_SALT);
             }
             else if (pathname === '/api/login' ||
                 pathname === '/api/logout' ||
@@ -58,7 +58,7 @@ export default {
                 pathname === '/api/password') {
                 response = await handleAuthRequest(request, env.TABIRA_USUARIOS, env.IP_SALT);
             }
-            else if (pathname.startsWith('/api/usuarios') || pathname === '/api/bitacora') {
+            else if (pathname.startsWith('/api/usuarios') || pathname === '/api/bitacora' || pathname === '/api/actividad') {
                 response = await handleUsuariosRequest(request, env.TABIRA_USUARIOS, env.IP_SALT);
             }
             else if (pathname.startsWith('/api/inventory')) {

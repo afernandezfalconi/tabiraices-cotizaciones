@@ -22,6 +22,56 @@ export async function handleUsuariosRequest(request, usuariosKV, ipSalt) {
         await requirePermiso(request, usuariosKV, 'bitacora');
         return ok({ items: await leerBitacora(usuariosKV) });
     }
+    /**
+     * Actividad completa — sólo ADMIN.
+     *
+     * Exige el permiso 'admins', que ningún otro rol tiene: ni el DUEÑO ni los
+     * vendedores pueden consultarla, ni siquiera llamando al endpoint a mano.
+     * Ocultar la pestaña en la pantalla no basta: sin esta comprobación,
+     * cualquiera con sesión podría leerla desde la consola del navegador.
+     */
+    if (ruta === '/api/actividad' && metodo === 'GET') {
+        const yo = await requirePermiso(request, usuariosKV, 'admins');
+        const registros = await leerBitacora(usuariosKV, 400);
+        const desde = url.searchParams.get('usuario');
+        const items = desde
+            ? registros.filter((r) => r && r.usuario === desde)
+            : registros;
+        // Resumen por usuario: quién usa la herramienta y cuánto.
+        const porUsuario = {};
+        for (const r of registros) {
+            if (!r || !r.usuario)
+                continue;
+            const u = (porUsuario[r.usuario] ||= {
+                usuario: r.usuario,
+                accesos: 0,
+                cotizaciones: 0,
+                compartidas: 0,
+                vistasDelCliente: 0,
+                movimientosInventario: 0,
+                total: 0,
+                ultimo: null,
+            });
+            u.total++;
+            if (!u.ultimo || r.fecha > u.ultimo)
+                u.ultimo = r.fecha;
+            if (r.accion === 'login')
+                u.accesos++;
+            else if (r.accion === 'cotizacion_crear')
+                u.cotizaciones++;
+            else if (r.accion === 'cotizacion_compartir')
+                u.compartidas++;
+            else if (r.accion === 'landing_vista')
+                u.vistasDelCliente++;
+            else if (r.accion.startsWith('usuario_') || r.accion === 'password_cambiar')
+                u.movimientosInventario++;
+        }
+        return ok({
+            items,
+            resumen: Object.values(porUsuario).sort((a, b) => (b.ultimo || '').localeCompare(a.ultimo || '')),
+            consultadoPor: yo.usuario,
+        });
+    }
     /* ---------------------------------------------------------------- listar */
     if (ruta === '/api/usuarios' && metodo === 'GET') {
         await requirePermiso(request, usuariosKV, 'usuarios');

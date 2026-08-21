@@ -1,6 +1,7 @@
 import { QuotesService, totalDe } from '../services/quotes-service';
 import { requirePermiso, AuthError } from '../middleware/auth';
 import { puede } from '../lib/roles';
+import { bitacora } from '../services/bitacora-service';
 const json = (data, status = 200) => new Response(JSON.stringify(data), {
     status,
     headers: { 'Content-Type': 'application/json; charset=utf-8' },
@@ -107,10 +108,11 @@ td{padding:10px;border-bottom:1px solid #eee}
 </div>
 </body></html>`;
 }
-export async function handleQuotesRequest(request, kv, usuariosKV) {
+export async function handleQuotesRequest(request, kv, usuariosKV, ipSalt) {
     const url = new URL(request.url);
     const ruta = url.pathname;
     const metodo = request.method;
+    const ip = request.headers.get('CF-Connecting-IP') || '';
     const quotes = new QuotesService(kv);
     /* ---------------- landing pública: SIN autenticación, a propósito ------- */
     const mLanding = ruta.match(/^\/landing\/([a-z0-9]+)$/);
@@ -119,6 +121,9 @@ export async function handleQuotesRequest(request, kv, usuariosKV) {
         if (!c) {
             return new Response('<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>No encontrada</title></head><body style="font-family:system-ui;text-align:center;padding:60px;color:#555"><h1 style="font-size:20px">Cotización no encontrada</h1><p>El enlace expiró o ya no está disponible.</p></body></html>', { status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
         }
+        // Cuántas veces abre el cliente la cotización que le mandaron: es la
+        // señal de si la herramienta le está sirviendo al vendedor.
+        await bitacora(usuariosKV, c.creado_por_nombre || c.creado_por, 'landing_vista', `#${c.id} · ${c.client || 'sin cliente'}`, ip, ipSalt);
         return new Response(landingHTML(c), {
             headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
         });
@@ -146,7 +151,9 @@ export async function handleQuotesRequest(request, kv, usuariosKV) {
                 return err('No puedes modificar una cotización de otro vendedor', 403, 'PERMISO');
             }
         }
+        const esNueva = !!body.nueva || !body.id;
         const guardada = await quotes.guardar(body, { id: yo.id, nombre: yo.nombre });
+        await bitacora(usuariosKV, yo.usuario, esNueva ? 'cotizacion_crear' : 'cotizacion_editar', `#${guardada.id} · ${guardada.client || 'sin cliente'} · $${totalDe(guardada).toFixed(2)}`, ip, ipSalt);
         return ok(guardada);
     }
     /* ------------------------------------------------------- una cotización - */
@@ -161,6 +168,7 @@ export async function handleQuotesRequest(request, kv, usuariosKV) {
         }
         if (metodo === 'DELETE') {
             await quotes.eliminar(mId[1]);
+            await bitacora(usuariosKV, yo.usuario, 'cotizacion_eliminar', `#${c.id} · ${c.client || 'sin cliente'}`, ip, ipSalt);
             return ok({ eliminada: true });
         }
         return ok(c);
@@ -177,6 +185,7 @@ export async function handleQuotesRequest(request, kv, usuariosKV) {
         }
         // Reutiliza el enlace ya publicado: compartir dos veces da la MISMA URL.
         const token = await quotes.tokenDeLanding(c.id);
+        await bitacora(usuariosKV, yo.usuario, 'cotizacion_compartir', `#${c.id} · ${c.client || 'sin cliente'}`, ip, ipSalt);
         return ok({ token, total: totalDe(c) });
     }
     /* --------------------------------------------------- siguiente folio ---- */

@@ -340,6 +340,7 @@ body{overflow-x:hidden}
     <div style="display:flex;gap:10px;margin-bottom:15px;border-bottom:1px solid var(--border);padding-bottom:10px;">
       <button class="admin-tab active" id="at-crear" onclick="switchAdminTab('crear')" style="padding:8px 16px;background:transparent;border:none;color:var(--text);cursor:pointer;font-weight:700;border-bottom:2px solid var(--gold);">Crear Producto</button>
       <button class="admin-tab" id="at-inventario" onclick="switchAdminTab('inventario')" style="padding:8px 16px;background:transparent;border:none;color:var(--muted);cursor:pointer;font-weight:700;">Agregar Stock</button>
+      <button class="admin-tab" id="at-bitacora" onclick="switchAdminTab('bitacora')" style="display:none;padding:8px 16px;background:transparent;border:none;color:var(--muted);cursor:pointer;font-weight:700;">Bitácora</button>
       <button class="admin-tab" id="at-usuarios" onclick="switchAdminTab('usuarios')" style="padding:8px 16px;background:transparent;border:none;color:var(--muted);cursor:pointer;font-weight:700;">Usuarios</button>
     </div>
 
@@ -365,6 +366,17 @@ body{overflow-x:hidden}
         <button class="btn bg" onclick="agregarStock()" style="padding:12px;">➕ Agregar</button>
       </div>
       <div id="inventario-lista" style="display:grid;gap:10px;"></div>
+    </div>
+
+    <!-- Tab: Bitácora (sólo ADMIN) -->
+    <div id="tab-bitacora" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+        <div style="font-size:12px;color:var(--muted);">Actividad registrada en la herramienta</div>
+        <button class="btn bgh bsm" onclick="cargarActividad()">Actualizar</button>
+      </div>
+      <div id="actividad-resumen" style="display:grid;gap:8px;margin-bottom:20px;"></div>
+      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;">Movimientos</div>
+      <div id="actividad-detalle" style="display:grid;gap:6px;max-height:520px;overflow-y:auto;"></div>
     </div>
 
     <!-- Tab: Usuarios -->
@@ -520,11 +532,14 @@ function mostrarPanelAdmin(){
   if(!esAdmin()){ panel.style.display = 'none'; return; }
   slot.appendChild(panel);
   panel.style.display = 'block';
+  // La bitácora es exclusiva de ADMIN: ni el dueño ni los vendedores la ven.
+  const tabBit=document.getElementById('at-bitacora');
+  if(tabBit) tabBit.style.display = puede('admins') ? '' : 'none';
   cargarProductosInventario();
 }
 
 function switchAdminTab(tab){
-  ['crear','inventario','usuarios'].forEach(t=>{
+  ['crear','inventario','usuarios','bitacora'].forEach(t=>{
     const panel=document.getElementById('tab-'+t);
     const boton=document.getElementById('at-'+t);
     if(panel) panel.style.display = t===tab ? 'block' : 'none';
@@ -535,6 +550,7 @@ function switchAdminTab(tab){
   });
   if(tab === 'inventario') cargarProductosInventario();
   if(tab === 'usuarios') cargarUsuarios();
+  if(tab === 'bitacora') cargarActividad();
 }
 
 async function crearProducto(){
@@ -695,6 +711,75 @@ async function agregarStock(){
 }
 
 /* ------------------------------------------------------------- usuarios */
+
+/* ---------------------------------------------------- bitácora (sólo ADMIN) */
+
+/** Fecha y hora en formato local, que es como se lee de un vistazo. */
+function cuando(iso){
+  try{
+    const d=new Date(iso);
+    const dia=d.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'});
+    const hora=d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',hour12:true});
+    return {dia, hora, completo: dia+' · '+hora};
+  }catch(e){ return {dia:iso||'—', hora:'', completo:iso||'—'}; }
+}
+
+const ACCIONES={
+  login:              {texto:'Entró al sistema',        color:'var(--bs-c)',  fondo:'var(--bs-bg)'},
+  login_fallido:      {texto:'Contraseña incorrecta',   color:'var(--del-c)', fondo:'var(--del-bg)'},
+  login_bloqueado:    {texto:'Bloqueado por intentos',  color:'var(--del-c)', fondo:'var(--del-bg)'},
+  password_cambiar:   {texto:'Cambió su contraseña',    color:'var(--bp-c)',  fondo:'var(--bp-bg)'},
+  cotizacion_crear:   {texto:'Creó una cotización',     color:'var(--bpa-c)', fondo:'var(--bpa-bg)'},
+  cotizacion_editar:  {texto:'Editó una cotización',    color:'var(--bp-c)',  fondo:'var(--bp-bg)'},
+  cotizacion_compartir:{texto:'Compartió con el cliente',color:'var(--bs-c)', fondo:'var(--bs-bg)'},
+  cotizacion_eliminar:{texto:'Borró una cotización',    color:'var(--del-c)', fondo:'var(--del-bg)'},
+  landing_vista:      {texto:'El cliente la abrió',     color:'var(--bpa-c)', fondo:'var(--bpa-bg)'},
+  usuario_crear:      {texto:'Dio de alta un usuario',  color:'var(--bp-c)',  fondo:'var(--bp-bg)'},
+  usuario_editar:     {texto:'Editó un usuario',        color:'var(--bp-c)',  fondo:'var(--bp-bg)'},
+  usuario_eliminar:   {texto:'Eliminó un usuario',      color:'var(--del-c)', fondo:'var(--del-bg)'}
+};
+
+async function cargarActividad(){
+  const resumen=document.getElementById('actividad-resumen');
+  const detalle=document.getElementById('actividad-detalle');
+  if(!resumen||!detalle) return;
+  detalle.innerHTML='<div style="color:var(--muted);font-size:13px;padding:10px;">Cargando…</div>';
+
+  try{
+    const d=await api('/api/actividad');
+
+    resumen.innerHTML=(d.resumen||[]).map(u=>{
+      const u1=cuando(u.ultimo);
+      return `<div style="padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;border-left:3px solid var(--gold);">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;">
+          <div style="font-weight:800;color:var(--text);">${u.usuario}</div>
+          <div style="font-size:11px;color:var(--muted);">última vez: ${u1.completo}</div>
+        </div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;font-size:12px;color:var(--muted);">
+          <span><strong style="color:var(--text);font-size:14px;">${u.accesos}</strong> accesos</span>
+          <span><strong style="color:var(--text);font-size:14px;">${u.cotizaciones}</strong> cotizaciones</span>
+          <span><strong style="color:var(--text);font-size:14px;">${u.compartidas}</strong> compartidas</span>
+          <span><strong style="color:var(--text);font-size:14px;">${u.vistasDelCliente}</strong> vistas del cliente</span>
+        </div>
+      </div>`;
+    }).join('') || '<div style="color:var(--muted);font-size:13px;">Sin actividad todavía.</div>';
+
+    detalle.innerHTML=(d.items||[]).map(r=>{
+      const a=ACCIONES[r.accion]||{texto:r.accion,color:'var(--muted)',fondo:'var(--surface2)'};
+      const t=cuando(r.fecha);
+      return `<div style="display:flex;gap:10px;align-items:baseline;padding:9px 12px;background:var(--surface);border:1px solid var(--border);border-radius:7px;flex-wrap:wrap;">
+        <span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:20px;background:${a.fondo};color:${a.color};white-space:nowrap;">${a.texto}</span>
+        <span style="font-weight:700;color:var(--text);font-size:13px;">${r.usuario||'—'}</span>
+        ${r.detalle?`<span style="font-size:12px;color:var(--muted);">${r.detalle}</span>`:''}
+        <span style="margin-left:auto;font-size:11px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums;">${t.dia} · ${t.hora}</span>
+      </div>`;
+    }).join('') || '<div style="color:var(--muted);font-size:13px;padding:10px;">Sin movimientos registrados.</div>';
+
+  }catch(e){
+    if(e.message==='SESION_EXPIRADA') return;
+    detalle.innerHTML=`<div style="color:var(--del-c);font-size:13px;padding:10px;">${e.message}</div>`;
+  }
+}
 
 /**
  * Usuarios creados en esta sesión.
