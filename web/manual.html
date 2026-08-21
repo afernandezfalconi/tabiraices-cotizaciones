@@ -283,6 +283,23 @@ ul.lista li::before{
 </style>
 </head>
 <body>
+<script>
+/**
+ * El manual es documentacion interna. Sin sesion no se muestra.
+ *
+ * ⚠️ Esto detiene a quien llegue navegando, que es el caso real: alguien que
+ * encuentra la direccion y la abre. NO detiene a quien sepa usar `curl`, porque
+ * la pagina se sirve estatica desde Pages. Para eso habria que servirla desde
+ * el Worker con el token, como la API.
+ */
+(function(){
+  try{
+    if(!sessionStorage.getItem('tabiraices_token')){
+      location.replace('login.html');
+    }
+  }catch(e){ location.replace('login.html'); }
+})();
+</script>
 <header class="portada">
   <div class="centro">
     <div class="marca">TABIRAÍCES · Manual de operación</div>

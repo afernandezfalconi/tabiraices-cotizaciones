@@ -26,6 +26,10 @@ body{font-family:Montserrat,sans-serif;background:var(--bg);color:var(--text);mi
 .nav-txt .nt{font-size:17px;font-weight:900;color:#fff;letter-spacing:1.5px;text-transform:uppercase;line-height:1.1}
 .nav-txt .ns{font-size:8.5px;color:var(--gold);font-weight:700;letter-spacing:.7px;text-transform:uppercase}
 .nav-r{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.perfil{display:flex;flex-direction:column;justify-content:center;line-height:1.15;padding:0 4px 0 2px;max-width:150px}
+.perfil .pn{font-size:11.5px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase;letter-spacing:.3px}
+.perfil .pr{font-size:8.5px;font-weight:700;color:var(--gold);letter-spacing:.6px;text-transform:uppercase}
+@media(max-width:520px){.perfil{max-width:96px}.perfil .pn{font-size:10.5px}}
 .tog{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}.tog:hover{background:rgba(255,255,255,.18)}
 .btn{display:inline-flex;align-items:center;gap:4px;padding:7px 14px;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;border:none;transition:all .15s;font-family:Montserrat,sans-serif;white-space:nowrap;text-transform:uppercase;letter-spacing:.6px}
 .bg{background:var(--gold);color:var(--navy)}.bg:hover{background:var(--gold2)}.bg:disabled{opacity:.6;cursor:default}
@@ -320,6 +324,9 @@ body{overflow-x:hidden}
   </div>
   <div class="nav-r">
     <button class="tog" id="theme-btn" onclick="toggleTheme()" title="Cambiar tema">☀️</button>
+    <!-- Quién está usando la herramienta: en obra se comparte el dispositivo y
+         conviene saber con qué cuenta se está trabajando antes de cotizar. -->
+    <div id="perfil-activo" class="perfil" title="Sesión activa"></div>
     <a class="btn bgh bsm" href="../manual.html" target="_blank" rel="noopener" title="Manual de uso" style="text-decoration:none;">📖 Manual</a>
     <button class="btn bgh bsm" onclick="logout()" title="Cerrar sesión">🚪 Salir</button>
     <!-- Aquí había un botón "← Cotizaciones" que llamaba a showView('list').
@@ -503,6 +510,18 @@ function toggleTheme(){
     const quien=sessionStorage.getItem('tabiraices_user')||'';
     localStorage.setItem('tabiraices_tema_'+quien, dark?'oscuro':'claro');
   }catch(e){ /* si no hay almacenamiento, el cambio dura la sesion */ }
+}
+
+/** Muestra con qué cuenta se está trabajando. */
+function pintarPerfilActivo(){
+  const caja=document.getElementById('perfil-activo');
+  if(!caja) return;
+  const nombre=sessionStorage.getItem('tabiraices_nombre')||sessionStorage.getItem('tabiraices_user')||'';
+  const rol=sessionStorage.getItem('tabiraices_rol')||'';
+  const etiquetas={ADMIN:'Admin',DUENO:'Dueño',VENDEDOR:'Vendedor'};
+  caja.innerHTML = nombre
+    ? `<div class="pn">${nombre}</div><div class="pr">${etiquetas[rol]||rol}</div>`
+    : '';
 }
 
 /** El boton ofrece la accion contraria a lo que se esta viendo. */
@@ -1403,6 +1422,7 @@ window.renderCentroModule = function() {
 // Inicializar después de que DOM esté listo
 async function arrancar(){
   pintarBotonTema();           // el icono debe coincidir con el tema aplicado
+  pintarPerfilActivo();        // y siempre a la vista con qué cuenta se trabaja
   render();                    // pinta la navegacion de inmediato
   await Promise.all([cargarCotizaciones(), cargarCatalogo()]);
   render();

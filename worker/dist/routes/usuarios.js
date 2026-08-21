@@ -1,6 +1,6 @@
 import { UsersService } from '../services/users-service';
 import { requirePermiso } from '../middleware/auth';
-import { puedeAdministrarRol, esRolValido } from '../lib/roles';
+import { puede, puedeAdministrarRol, esRolValido, ROLES_ADMIN } from '../lib/roles';
 import { bitacora, leerBitacora } from '../services/bitacora-service';
 const json = (data, status = 200) => new Response(JSON.stringify(data), {
     status,
@@ -74,8 +74,22 @@ export async function handleUsuariosRequest(request, usuariosKV, ipSalt) {
     }
     /* ---------------------------------------------------------------- listar */
     if (ruta === '/api/usuarios' && metodo === 'GET') {
-        await requirePermiso(request, usuariosKV, 'usuarios');
-        return ok({ items: await users.listar() });
+        const yo = await requirePermiso(request, usuariosKV, 'usuarios');
+        const todos = await users.listar();
+        /**
+         * Quien no puede administrar cuentas de nivel alto tampoco las ve.
+         *
+         * El DUEÑO veía la cuenta del ADMIN en su panel con botones de "Contraseña"
+         * y "Desactivar" que sólo devolvían un error. No tiene por qué saber que
+         * esa cuenta existe. Su propia cuenta sí la ve, para cambiar su contraseña.
+         *
+         * ⚠️ El filtro va aquí y no en la pantalla: ocultarla en el HTML dejaría la
+         * lista completa a un `fetch` desde la consola del navegador.
+         */
+        const items = puede(yo, 'admins')
+            ? todos
+            : todos.filter((u) => u.id === yo.id || !ROLES_ADMIN.includes(u.rol));
+        return ok({ items });
     }
     /* ----------------------------------------------------------------- crear */
     if (ruta === '/api/usuarios' && metodo === 'POST') {
