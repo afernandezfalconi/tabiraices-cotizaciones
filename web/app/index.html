@@ -952,6 +952,11 @@ async function downloadPDF(qi){
 /* downloadPDF_OLD eliminada: generaba el PDF con jsPDF dibujando a mano,
    quedo sin uso al pasar a imprimir la landing del servidor. */
 
+/* Qué pestaña se está viendo. La borré por accidente al eliminar la función
+   muerta del PDF —el corte se llevó esta línea que estaba justo debajo— y
+   render() reventaba con "module is not defined": desaparecían las pestañas y
+   el panel de administración. */
+var module='nueva';
 function showView(v){view=v;render();}
 function showModule(m){module=m;view='list';activeFilter='all';render();}
 function setFilter(f){activeFilter=f;render();}
