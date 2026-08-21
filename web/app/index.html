@@ -14,7 +14,9 @@
 <meta name="apple-mobile-web-app-title" content="Cotizador"/>
 <meta name="theme-color" content="#0D1B2A"/>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- Aquí se cargaba jsPDF (~350 KB) desde un CDN. Quedó sin uso al pasar a
+     imprimir la landing del servidor, pero se seguía descargando en cada
+     carga: se nota en obra, con señal débil y desde el celular. -->
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#f4f3ef;--surface:#fff;--surface2:#f0efe9;--border:#d0cfc9;--text:#1a1a1a;--muted:#666;--inp:#fff;--inp-bd:#d0cfc9;--navy:#0D1B2A;--navy2:#162336;--gold:#F5C010;--gold2:#E0A800;--r:10px;--div:#e8e7e1;--bp-bg:#fef3c7;--bp-c:#92400e;--bs-bg:#dbeafe;--bs-c:#1e40af;--bpa-bg:#d1fae5;--bpa-c:#065f46;--del-bg:#fee2e2;--del-c:#b91c1c;}
@@ -910,87 +912,46 @@ const sLbl=s=>s==='paid'?'Pagado':s==='sent'?'Enviado':s==='cancelled'?'Cancelad
 const sCls=s=>s==='paid'?'bpa':s==='sent'?'bs':s==='cancelled'?'bdel':'bp';
 function bSVG(sz){return`<img src="${LOGO_SRC}" style="height:${sz}px;width:auto" alt=""/>`;}
 
+/**
+ * Abre la cotización en su página imprimible para guardarla como PDF.
+ *
+ * ⚠️ Antes guardaba una COPIA en localStorage y abría la landing vieja
+ * (`landing.html?id=`). Eso era el patrón que llenó la lista de cotizaciones
+ * duplicadas, y ademas dejaba de funcionar al migrar los datos al servidor.
+ * Ahora pide el enlace real al Worker: la página que se imprime es la misma
+ * que ve el cliente, y refleja siempre la versión vigente.
+ */
 async function downloadPDF(qi){
   const q=quotes[qi];
-  const hash=genHash();
-  localStorage.setItem(`coti_${hash}`,JSON.stringify(q));
-  const url=window.location.origin+'/landing.html?id='+hash;
-  const win=window.open(url,'_blank');
-  if(win){
-    win.focus();
-    setTimeout(()=>{win.print();},1500);
-  }else{
-    alert('Abre esta URL en tu navegador:\\n'+url+'\\n\\nLuego usa Ctrl+P o Cmd+P para guardar como PDF');
+  if(!q){ alert('No se encontró la cotización'); return; }
+
+  const btn=document.getElementById('pdfbtn-'+qi);
+  const textoOriginal=btn?btn.innerHTML:null;
+  if(btn){ btn.disabled=true; btn.textContent='Preparando…'; }
+
+  try{
+    const d=await api('/api/cotizaciones/'+q.id+'/compartir',{method:'POST'});
+    const url=API+'/landing/'+d.token;
+    const win=window.open(url,'_blank');
+    if(win){
+      win.focus();
+      // Se le da tiempo a cargar las fuentes antes de abrir el diálogo de
+      // impresión; si no, sale con la tipografía de reemplazo.
+      setTimeout(()=>{ try{ win.print(); }catch(e){} }, 1800);
+    }else{
+      // El navegador bloqueó la ventana emergente (común en celular).
+      alert('Abre este enlace y usa Imprimir → Guardar como PDF:\n\n'+url);
+    }
+  }catch(e){
+    if(e.message!=='SESION_EXPIRADA') alert('No se pudo preparar el PDF: '+e.message);
+  }finally{
+    if(btn){ btn.disabled=false; btn.innerHTML=textoOriginal; }
   }
-  return;
 }
 
-async function downloadPDF_OLD(qi){
-  const q=quotes[qi];
-  const btn=document.getElementById('pdfbtn-'+qi);
-  if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span> Generando...';}
-  await new Promise(r=>setTimeout(r,60));
-  try{
-    if(!window.jspdf){alert('jsPDF no disponible');return;}
-    const{jsPDF}=window.jspdf;
-    const doc=new jsPDF({orientation:'p',unit:'mm',format:'a4'});
-    const W=210,H=297,ml=14,cw=182;
-    const N=[13,27,42],N2=[22,35,54],GO=[245,192,16],WH=[255,255,255],GR=[244,243,239],LG=[232,231,225],TX=[26,26,26],MU=[110,110,110];
-    const f=(...c)=>doc.setFillColor(...c);
-    const tc=(...c)=>doc.setTextColor(...c);
-    const lw=w=>doc.setLineWidth(w);
-    const clip=(s,n)=>{s=String(s||'—');return s.length>n?s.slice(0,n-1)+'…':s;};
-    const li=document.getElementById('logo-img');
-    if(li){try{const lc=document.createElement('canvas');lc.width=200;lc.height=200;const lctx=lc.getContext('2d');lctx.drawImage(li,0,0,200,200);doc.addImage(lc.toDataURL('image/png'),'PNG',ml,5,18,18);}catch(e){}}
-    f(...N);doc.rect(0,0,W,42,'F');
-    tc(...WH);doc.setFont('helvetica','bold');doc.setFontSize(18);doc.text('TABIRAÍCES',ml+22,16);
-    tc(...GO);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text('La base de toda buena obra',ml+22,22);
-    f(...GO);doc.rect(W-ml-44,7,44,17,'F');
-    tc(...N);doc.setFont('helvetica','bold');doc.setFontSize(8);doc.text('FACTURA NRO.',W-ml-22,13,{align:'center'});
-    doc.setFontSize(16);doc.text('#'+q.id,W-ml-22,23,{align:'center'});
-    tc(180,180,180);doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.text('Fecha: '+q.date,W-ml-22,33,{align:'center'});
-    let y=42;
-    f(...N2);doc.rect(0,y,W,11,'F');tc(190,200,215);doc.setFontSize(7);doc.setFont('helvetica','normal');
-    doc.text('Tel: 954 100 4104 / 954 138 9557',ml,y+7);doc.text('Ventanilla Colotepec',W/2,y+7,{align:'center'});doc.text('bloquera.tabiraices@gmail.com',W-ml,y+7,{align:'right'});y+=16;
-    f(...N);doc.rect(ml,y,cw,8,'F');tc(...GO);doc.setFontSize(7.5);doc.setFont('helvetica','bold');doc.text('DATOS DEL CLIENTE',ml+4,y+5.3);y+=8;
-    const cw3=cw/3;f(242,242,248);doc.rect(ml,y,cw,16,'F');
-    doc.setDrawColor(200,200,212);lw(0.3);doc.line(ml+cw3,y,ml+cw3,y+16);doc.line(ml+cw3*2,y,ml+cw3*2,y+16);
-    tc(...MU);doc.setFontSize(6.5);doc.setFont('helvetica','bold');doc.text('CLIENTE',ml+3,y+4.5);doc.text('PROYECTO / OBRA',ml+cw3+3,y+4.5);doc.text('ENTREGA EN',ml+cw3*2+3,y+4.5);
-    tc(...TX);doc.setFontSize(9);doc.setFont('helvetica','bold');doc.text(clip(q.client,27),ml+3,y+12);doc.text(clip(q.project,27),ml+cw3+3,y+12);doc.text(clip(q.location,27),ml+cw3*2+3,y+12);
-    if(q.payment){tc(...MU);doc.setFontSize(7);doc.setFont('helvetica','normal');doc.text('Forma de pago: '+q.payment,ml,y+19.5);}y+=16+11;
-    f(...N);doc.rect(ml,y,cw,9,'F');tc(...WH);doc.setFontSize(7.5);doc.setFont('helvetica','bold');
-    const c1=ml+3,c2=ml+cw*.47,c3=ml+cw*.64;
-    doc.text('DESCRIPCION',c1,y+6);doc.text('PRECIO UNIT.',c2,y+6);doc.text('CANTIDAD',c3,y+6);doc.text('TOTAL',ml+cw-3,y+6,{align:'right'});y+=9;
-    q.items.forEach((item,i)=>{
-      f(...(i%2===0?WH:GR));doc.rect(ml,y,cw,9,'F');doc.setDrawColor(...LG);lw(0.2);doc.line(ml,y+9,ml+cw,y+9);
-      tc(...TX);doc.setFont('helvetica','normal');doc.setFontSize(9);doc.text(clip(item.desc||'—',36),c1,y+6);doc.text(fmtN(parseFloat(item.unit)||0),c2,y+6);doc.text(String(parseInt(item.qty)||0),c3,y+6);
-      doc.setFont('helvetica','bold');doc.text(fmtN((parseFloat(item.unit)||0)*(parseFloat(item.qty)||0)),ml+cw-3,y+6,{align:'right'});y+=9;
-    });y+=7;
-    const st=sub(q.items),iv=st*(q.ivaRate||0)/100,tot=st+iv,tX=ml+cw-74;
-    tc(...MU);doc.setFont('helvetica','normal');doc.setFontSize(9);doc.text('Subtotal',tX,y);tc(...TX);doc.setFont('helvetica','bold');doc.text(fmtN(st),ml+cw-3,y,{align:'right'});y+=7;
-    tc(...MU);doc.setFont('helvetica','normal');doc.text('IVA ('+(q.ivaRate||0)+'%)',tX,y);tc(...TX);doc.setFont('helvetica','bold');doc.text(fmtN(iv),ml+cw-3,y,{align:'right'});y+=4;
-    f(...GO);doc.rect(tX-3,y,cw-(tX-ml)+3,13,'F');tc(...N);doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text('TOTAL',tX,y+8.5);doc.setFontSize(14);doc.text(fmtN(tot),ml+cw-3,y+9,{align:'right'});y+=20;
-    doc.setDrawColor(...N);lw(0.5);doc.line(W-ml-65,y+20,W-ml,y+20);tc(...MU);doc.setFont('helvetica','normal');doc.setFontSize(7.5);
-    doc.text('Firma / Aceptacion del cliente',W-ml-32,y+25,{align:'center'});doc.text(q.client||'',W-ml-32,y+30,{align:'center'});y+=38;
-    f([10,20,34]);doc.rect(ml,y,cw,8,'F');tc(...GO);doc.setFont('helvetica','bold');doc.setFontSize(8);doc.text('DATOS BANCARIOS — PAGOS OFICIALES TABIRAÍCES',ml+cw/2,y+5.5,{align:'center'});y+=8;
-    f(...N2);doc.rect(ml,y,cw,42,'F');lw(0.25);doc.setDrawColor(255,255,255);doc.line(ml,y+14,ml+cw,y+14);doc.line(ml,y+28,ml+cw,y+28);
-    [{lbl:'NUMERO DE CUENTA',num:BANK.cuenta},{lbl:'CLABE INTERBANCARIA',num:BANK.clabe},{lbl:'NUMERO DE TARJETA',num:BANK.tarjeta}].forEach((row,i)=>{
-      const ry=y+3+i*14;f(...GO);doc.circle(ml+7,ry+5,4,'F');tc(...N);doc.setFont('helvetica','bold');doc.setFontSize(7);doc.text(['C','L','T'][i],ml+7,ry+7.5,{align:'center'});
-      tc(...GO);doc.setFont('helvetica','bold');doc.setFontSize(6.5);doc.text(row.lbl,ml+14,ry+4);tc(160,175,190);doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.text(BANK.banco,ml+14,ry+8);tc(...WH);doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.text(row.num,ml+14,ry+13);
-    });y+=42;
-    f(...N);doc.rect(ml,y,cw,9,'F');f(...GO);doc.circle(ml+7,y+4.5,3.5,'F');tc(...N);doc.setFont('helvetica','bold');doc.setFontSize(7);doc.text('B',ml+7,y+7,{align:'center'});
-    tc(...GO);doc.setFontSize(6.5);doc.text('BENEFICIARIA:',ml+14,y+4);tc(...WH);doc.setFont('helvetica','bold');doc.setFontSize(9);doc.text(BANK.bene,ml+42,y+7);y+=14;
-    f(...N2);doc.rect(ml,y,cw,12,'F');lw(0.3);doc.setDrawColor(255,255,255);const sp1=ml+cw*.37,sp2=ml+cw*.63;doc.line(sp1,y+2,sp1,y+10);doc.line(sp2,y+2,sp2,y+10);
-    tc(...GO);doc.setFont('helvetica','bold');doc.setFontSize(7);doc.text('RENTA DE RETROEXCAVADORA',ml+(sp1-ml)/2,y+5,{align:'center'});doc.text('VENTA DE TERRENOS',(sp1+sp2)/2,y+5,{align:'center'});
-    tc(160,175,190);doc.setFontSize(6.5);doc.text('Maquinaria disponible',ml+(sp1-ml)/2,y+9.5,{align:'center'});doc.text('Terrenos en la region',(sp1+sp2)/2,y+9.5,{align:'center'});
-    tc(180,190,200);doc.setFont('helvetica','bold');doc.setFontSize(8);doc.text('@TabiraicesVentanilla',ml+cw-3,y+7,{align:'right'});
-    f(...N);doc.rect(0,H-18,W,18,'F');tc(...GO);doc.setFont('helvetica','bold');doc.setFontSize(9);doc.text('Gracias por construir con TABIRAÍCES',W/2,H-11,{align:'center'});
-    tc(150,160,175);doc.setFont('helvetica','normal');doc.setFontSize(7);doc.text('Seguimos trabajando para ser la base de toda buena obra.',W/2,H-5,{align:'center'});
-    doc.save('Cotizacion-'+q.id+'-'+(q.client||'Cliente').replace(/\s+/g,'_')+'.pdf');
-  }catch(e){alert('Error PDF: '+e.message);}
-  finally{if(btn){btn.disabled=false;btn.innerHTML='Descargar PDF';}}
-}
-var module='nueva';
+/* downloadPDF_OLD eliminada: generaba el PDF con jsPDF dibujando a mano,
+   quedo sin uso al pasar a imprimir la landing del servidor. */
+
 function showView(v){view=v;render();}
 function showModule(m){module=m;view='list';activeFilter='all';render();}
 function setFilter(f){activeFilter=f;render();}
