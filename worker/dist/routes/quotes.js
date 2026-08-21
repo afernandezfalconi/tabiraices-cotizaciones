@@ -123,7 +123,7 @@ export async function handleQuotesRequest(request, kv, usuariosKV, ipSalt) {
         }
         // Cuántas veces abre el cliente la cotización que le mandaron: es la
         // señal de si la herramienta le está sirviendo al vendedor.
-        await bitacora(usuariosKV, c.creado_por_nombre || c.creado_por, 'landing_vista', `#${c.id} · ${c.client || 'sin cliente'}`, ip, ipSalt);
+        await bitacora(usuariosKV, c.creado_por_usuario || c.creado_por_nombre || c.creado_por, 'landing_vista', `#${c.id} · ${c.client || 'sin cliente'}`, ip, ipSalt);
         return new Response(landingHTML(c), {
             headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
         });
@@ -152,7 +152,7 @@ export async function handleQuotesRequest(request, kv, usuariosKV, ipSalt) {
             }
         }
         const esNueva = !!body.nueva || !body.id;
-        const guardada = await quotes.guardar(body, { id: yo.id, nombre: yo.nombre });
+        const guardada = await quotes.guardar(body, { id: yo.id, nombre: yo.nombre, usuario: yo.usuario });
         await bitacora(usuariosKV, yo.usuario, esNueva ? 'cotizacion_crear' : 'cotizacion_editar', `#${guardada.id} · ${guardada.client || 'sin cliente'} · $${totalDe(guardada).toFixed(2)}`, ip, ipSalt);
         return ok(guardada);
     }

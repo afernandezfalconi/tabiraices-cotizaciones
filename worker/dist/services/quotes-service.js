@@ -119,6 +119,7 @@ export class QuotesService {
             comprobante: datos.comprobante,
             creado_por: previa?.creado_por || autor.id,
             creado_por_nombre: previa?.creado_por_nombre || autor.nombre,
+            creado_por_usuario: previa?.creado_por_usuario || autor.usuario,
             creado_en: previa?.creado_en || ahora,
             actualizado_en: ahora,
         };

@@ -16,6 +16,8 @@ export interface Cotizacion {
     comprobante?: string;
     creado_por: string;
     creado_por_nombre: string;
+    /** Nombre de usuario, para que la bitácora atribuya todo a la misma persona. */
+    creado_por_usuario?: string;
     creado_en: string;
     actualizado_en: string;
     /** Sólo de entrada: pide al servidor que asigne folio. No se persiste. */
@@ -78,6 +80,7 @@ export declare class QuotesService {
     guardar(datos: Partial<Cotizacion>, autor: {
         id: string;
         nombre: string;
+        usuario?: string;
     }): Promise<Cotizacion>;
     eliminar(id: string): Promise<boolean>;
     /**

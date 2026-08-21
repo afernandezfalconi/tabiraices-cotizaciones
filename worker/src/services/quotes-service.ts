@@ -33,6 +33,8 @@ export interface Cotizacion {
   comprobante?: string;
   creado_por: string;
   creado_por_nombre: string;
+  /** Nombre de usuario, para que la bitácora atribuya todo a la misma persona. */
+  creado_por_usuario?: string;
   creado_en: string;
   actualizado_en: string;
   /** Sólo de entrada: pide al servidor que asigne folio. No se persiste. */
@@ -147,7 +149,7 @@ export class QuotesService {
 
   async guardar(
     datos: Partial<Cotizacion>,
-    autor: { id: string; nombre: string }
+    autor: { id: string; nombre: string; usuario?: string }
   ): Promise<Cotizacion> {
     // `nueva` lo manda el cotizador al guardar por primera vez: el folio lo
     // asigna el servidor, no el navegador, para que dos vendedores simultáneos
@@ -169,6 +171,7 @@ export class QuotesService {
       comprobante: datos.comprobante,
       creado_por: previa?.creado_por || autor.id,
       creado_por_nombre: previa?.creado_por_nombre || autor.nombre,
+      creado_por_usuario: previa?.creado_por_usuario || autor.usuario,
       creado_en: previa?.creado_en || ahora,
       actualizado_en: ahora,
     };
