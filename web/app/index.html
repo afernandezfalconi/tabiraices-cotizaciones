@@ -385,11 +385,9 @@ body{overflow-x:hidden}
         <input type="text" id="u-usuario" placeholder="Usuario (ej: juan)" autocomplete="off" style="padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--inp);color:var(--text);font-family:Montserrat;">
         <input type="text" id="u-nombre" placeholder="Nombre completo" autocomplete="off" style="padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--inp);color:var(--text);font-family:Montserrat;">
         <input type="password" id="u-password" placeholder="Contraseña (mínimo 8)" autocomplete="new-password" style="padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--inp);color:var(--text);font-family:Montserrat;">
-        <select id="u-rol" style="padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--inp);color:var(--text);font-family:Montserrat;">
-          <option value="VENDEDOR">Vendedor — cotiza, aparta y ve stock (sin costos)</option>
-          <option value="DUENO">Dueño — opera el negocio y gestiona sus vendedores</option>
-          <option value="ADMIN">Admin — control total del sistema</option>
-        </select>
+        <!-- Los roles altos sólo se listan a quien puede crearlos: el DUEÑO
+             veía "Admin" en la lista y al elegirlo se topaba con un error. -->
+        <select id="u-rol" style="padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--inp);color:var(--text);font-family:Montserrat;"></select>
       </div>
       <button class="btn bg" onclick="crearUsuario()" style="width:100%;padding:12px;margin-bottom:16px;">✅ Crear Usuario</button>
       <div id="usuarios-lista" style="display:grid;gap:10px;"></div>
@@ -792,7 +790,21 @@ async function cargarActividad(){
  */
 let usuariosRecientes = [];
 
+/** El desplegable de rol muestra sólo lo que este usuario puede crear. */
+function llenarRolesDisponibles(){
+  const sel=document.getElementById('u-rol');
+  if(!sel) return;
+  const opciones=[['VENDEDOR','Vendedor — cotiza, aparta y ve stock (sin costos)']];
+  // 'admins' es exclusivo de ADMIN: sin él no se crean cuentas de nivel alto.
+  if(puede('admins')){
+    opciones.push(['DUENO','Dueño — opera el negocio y gestiona sus vendedores']);
+    opciones.push(['ADMIN','Admin — control total del sistema']);
+  }
+  sel.innerHTML=opciones.map(([v,t])=>`<option value="${v}">${t}</option>`).join('');
+}
+
 async function cargarUsuarios(){
+  llenarRolesDisponibles();
   const cont = document.getElementById('usuarios-lista');
   if(!cont) return;
   try {
